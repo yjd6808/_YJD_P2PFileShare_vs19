@@ -34,7 +34,7 @@ namespace P2PClient
             });
         }
 
-        private void M_MasterClient_OnOtherClientP2PRequestPathArrived(object sender, RequestPath e)
+        private void M_MasterClient_OnOtherClientP2PRequestPathArrived(object sender, P2PRequestPath e)
         {
             Dispatcher.Invoke(() =>
             {

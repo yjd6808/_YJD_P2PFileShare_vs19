@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,9 @@ namespace P2PClient
         private Thread m_ClientUDPListenerThread;
         private Thread m_ClientHeartBeatThread;
 
+        private MD5 m_MD5Hasher;
+
+
         private bool m_IsUDPListened;
         private bool m_IsTCPListened;
         private bool m_IsConnected;
@@ -38,7 +42,11 @@ namespace P2PClient
         public P2PClientInfo MyInfo;
         public List<P2PClientInfo> OtherClientList;
         public List<P2PClientInfo> ConnectedClientList;
-        private List<Ack> m_SuccessAckResponses;
+        
+        public Dictionary<long, P2PClientTransferingData> TransferingDataList;      //현재 MyInfo.ID와 파일 <송수신중인 클라이언트 ID, 데이터정보>
+
+        private List<P2PRequestConnectAck> m_SuccessAckResponses;
+
 
         /*========================= 이벤트 ================================*/
 
@@ -49,7 +57,7 @@ namespace P2PClient
 
         public event EventHandler                   OnOtherClientP2PConnected;
         public event EventHandler<P2PMessage>       OnOtherClientP2PMessageArrived;
-        public event EventHandler<RequestPath>      OnOtherClientP2PRequestPathArrived;
+        public event EventHandler<P2PRequestPath>   OnOtherClientP2PRequestPathArrived;
         public event EventHandler                   OnOtherClientP2PDisconnected;
 
         public event EventHandler                   OnServerConnect;
@@ -65,9 +73,10 @@ namespace P2PClient
             MyInfo = new P2PClientInfo();
             MyInfo.TCPClient = new TcpClient();
             MyInfo.UDPClient = new UdpClient();
-            m_SuccessAckResponses = new List<Ack>();
+            m_SuccessAckResponses = new List<P2PRequestConnectAck>();
             OtherClientList = new List<P2PClientInfo>();
             ConnectedClientList= new List<P2PClientInfo>();
+            m_MD5Hasher = MD5.Create();
 
             MyInfo.UDPClient.AllowNatTraversal(true);
             MyInfo.UDPClient.Client.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
@@ -209,10 +218,10 @@ namespace P2PClient
 
                     WindowLogger.WriteLineMessage(testEndPoint.ToString() + "아이피로 UDP 접속 시도중...");
 
-                    SendMessageUDP(new Ack(MyInfo.ID), testEndPoint);
+                    SendMessageUDP(new P2PRequestConnect(MyInfo.ID), testEndPoint);
                     Thread.Sleep(200);
 
-                    Ack Responce = m_SuccessAckResponses.FirstOrDefault(a => a.RecipientID == client.ID);
+                    P2PRequestConnectAck Responce = m_SuccessAckResponses.FirstOrDefault(a => a.ID == client.ID);
                     if (Responce != null)
                     {
                         WindowLogger.WriteLineMessage(testEndPoint.ToString() + "아이피로부터 ACK를 수신하였습니다.");

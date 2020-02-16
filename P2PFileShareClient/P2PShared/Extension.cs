@@ -38,5 +38,36 @@ namespace P2PShared
 
             return clientInfo;
         }
+
+
+        public static double BytesToKilobytes(this byte[] bytes)
+        {
+            return bytes.Length / 1024d;
+        }
+
+        public static double BytesToMegabytes(this byte[] bytes)
+        {
+            return BytesToKilobytes(bytes) / 1024d;
+        }
+
+        public static double BytesToGigabytes(this byte[] bytes)
+        {
+            return BytesToKilobytes(bytes) / 1048576D;
+        }
+
+        public static double BytesToKilobytes(this uint bytesSize)
+        {
+            return bytesSize / 1024d;
+        }
+
+        public static double BytesToMegabytes(this uint bytesSize)
+        {
+            return BytesToKilobytes(bytesSize) / 1024d;
+        }
+
+        public static double BytesToGigabytes(this uint bytesSize)
+        {
+            return BytesToKilobytes(bytesSize) / 1048576D;
+        }
     }
 }

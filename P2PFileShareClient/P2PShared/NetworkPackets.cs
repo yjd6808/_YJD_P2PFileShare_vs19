@@ -16,6 +16,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace P2PShared
+
+    /*================================*/
+    /*          일반 패킷             */
+    /*================================*/
 {
     #region P2PClient [Client <-> Server]
     public enum ConnectionTypes { Unknown, LAN, WAN }
@@ -168,7 +172,7 @@ namespace P2PShared
 
     #endregion
 
-    #region TestMessage [P2P]
+    #region TestMessage [Client <-> Server]
 
     [Serializable]
     public class TestMessage : INetworkPacket
@@ -188,27 +192,37 @@ namespace P2PShared
 
     #endregion
 
-    #region Ack [P2P]
+    /*================================*/
+    /*            P2P 패킷            */
+    /*================================*/
+
+    #region P2PRequestConnect [P2P]
 
     [Serializable]
-    public class Ack : INetworkPacket
+    public class P2PRequestConnect : INetworkPacket
     {
         public long ID { get; set; }
-        public long RecipientID { get; set; }
-        public bool Connected { get; set; }
 
-        public Ack(long id)
+        public P2PRequestConnect(long Id)
+        {
+            this.ID = Id;
+        }
+    }
+
+    [Serializable]
+    public class P2PRequestConnectAck : INetworkPacket
+    {
+        public long ID { get; set; }
+
+        public P2PRequestConnectAck(long id)
         {
             this.ID = id;
-
-            this.RecipientID = 0; //수신이 성공하게되면 수신자의 ID가 담기게 된다.
-            this.Connected = false;
         }
-
     }
+
     #endregion
 
-    #region ChatMessage [P2P]
+    #region P2PMessage [P2P]
 
     [Serializable]
     public class P2PMessage : INetworkPacket
@@ -225,26 +239,26 @@ namespace P2PShared
 
     #endregion
 
-    #region RequestPath [P2P]
+    #region P2PRequestPath [P2P]
 
-    public enum RequestPathStatus { Pending, Failed, Success }
+    public enum P2PRequestPathStatus { Pending, Failed, Success }
 
     [Serializable]
-    public class RequestPath : INetworkPacket
+    public class P2PRequestPath : INetworkPacket
     {
         public long ID { get; set; }
         public long RecipientID { get; set; }
         public string RequestedPath { get; set; }
         public List<P2PPath> DirectoriesAndFiles = new List<P2PPath>();
-        public RequestPathStatus Status { get; set; }
+        public P2PRequestPathStatus Status { get; set; }
         public string Message;
 
-        public RequestPath(long id, long recipientId, string requestPath)
+        public P2PRequestPath(long id, long recipientId, string P2PRequestPath)
         {
             this.ID = id;
             this.RecipientID = recipientId;
-            this.RequestedPath = requestPath;
-            this.Status = RequestPathStatus.Pending;
+            this.RequestedPath = P2PRequestPath;
+            this.Status = P2PRequestPathStatus.Pending;
             this.Message = "현재 요청 진행중입니다.";
         }
     }
@@ -270,6 +284,54 @@ namespace P2PShared
         }
 
     }
+
+    #endregion
+
+    #region P2PFileTransfer [P2P]
+
+    
+
+
+    [Serializable]
+    public class P2PFileTransferingPacket : INetworkPacket
+    {
+        public long ID { get; set; }
+
+        public P2PFileTransferingPacket(long Id)
+        {
+            this.ID = Id;
+        }
+    }
+
+    [Serializable]
+    public class P2PRequestFile : P2PFileTransferingPacket
+    {
+        public string RequestPath { get; set; }
+
+        public P2PRequestFile(long Id, string requestPath) : base(Id)
+        {
+            this.RequestPath = requestPath;
+        }
+    }
+
+
+    [Serializable]
+    public class P2PRequestFileAck : P2PFileTransferingPacket
+    {
+        public uint FileSize { get; set; }
+        public byte[] CheckSum { get; set; }
+        public int BlockSize { get; set; }
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; }
+
+        public P2PRequestFileAck(long Id) : base(Id)
+        {
+            this.IsSuccess = false;
+            this.Message = string.Empty;
+        }
+    }
+
+
 
     #endregion
 }

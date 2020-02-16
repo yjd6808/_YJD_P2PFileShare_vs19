@@ -41,7 +41,7 @@ namespace P2PClient
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             ConnectedToPeer();
-            SendMessageToPeer(new RequestPath(
+            SendMessageToPeer(new P2PRequestPath(
                 this.m_MasterClient.MyInfo.ID, 
                 this.ConnectedClient.ID,
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
@@ -97,7 +97,18 @@ namespace P2PClient
 
         private void ListView_ContextMemu_Download_Click(object sender, RoutedEventArgs e)
         {
+            P2PPath selectedItem = ListView_PathList.SelectedItem as P2PPath;
 
+            if (selectedItem == null)
+                return;
+
+            if (ConnectedClient == null || ConnectedClient.IsP2PConnected == false)
+            {
+                WriteNotifyingMessage("상대방과 연결되어있지 않습니다.");
+                return;
+            }
+
+            DownloadFile(selectedItem);
         }
 
         private void ListView_ContextMemu_Favorite_Click(object sender, RoutedEventArgs e)
@@ -105,13 +116,16 @@ namespace P2PClient
 
         }
 
-
-
-
        
         private void Button_Refresh_Click(object sender, RoutedEventArgs e)
         {
-            SendMessageToPeer(new RequestPath(
+            if (ConnectedClient == null || ConnectedClient.IsP2PConnected == false)
+            {
+                WriteNotifyingMessage("상대방과 연결되어있지 않습니다.");
+                return;
+            }
+
+            SendMessageToPeer(new P2PRequestPath(
                this.m_MasterClient.MyInfo.ID,
                this.ConnectedClient.ID,
                this.CurrentPeerDirectory));
@@ -119,7 +133,13 @@ namespace P2PClient
 
         private void Button_Home_Click(object sender, RoutedEventArgs e)
         {
-            SendMessageToPeer(new RequestPath(
+            if (ConnectedClient == null || ConnectedClient.IsP2PConnected == false)
+            {
+                WriteNotifyingMessage("상대방과 연결되어있지 않습니다.");
+                return;
+            }
+
+            SendMessageToPeer(new P2PRequestPath(
                this.m_MasterClient.MyInfo.ID,
                this.ConnectedClient.ID,
                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
@@ -131,16 +151,22 @@ namespace P2PClient
             if (selectedItem == null)
                 return;
 
+            if (ConnectedClient == null || ConnectedClient.IsP2PConnected == false)
+            {
+                WriteNotifyingMessage("상대방과 연결되어있지 않습니다.");
+                return;
+            }
+
             if (selectedItem.PathType == P2PPathType.Previous)
             {
-                SendMessageToPeer(new RequestPath(
+                SendMessageToPeer(new P2PRequestPath(
                     this.m_MasterClient.MyInfo.ID,
                     this.ConnectedClient.ID,
                     Directory.GetParent(CurrentPeerDirectory).FullName));
             }
             else if (selectedItem.PathType == P2PPathType.Directory)
             {
-                SendMessageToPeer(new RequestPath(
+                SendMessageToPeer(new P2PRequestPath(
                     this.m_MasterClient.MyInfo.ID,
                     this.ConnectedClient.ID,
                     selectedItem.FullPath));
@@ -150,15 +176,32 @@ namespace P2PClient
 
         private void ListView_PathList_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
+            P2PPath selectedItem = ListView_PathList.SelectedItem as P2PPath;
 
+            if (selectedItem == null)
+                return;
+
+            switch (selectedItem.PathType)
+            {
+                case P2PPathType.Previous:
+                    ListView_ContextMenu_Download.IsEnabled = false;
+                    ListView_ContextMenu_SetFavorite.IsEnabled = false;
+                    break;
+                case P2PPathType.Directory:
+                    ListView_ContextMenu_Download.IsEnabled = false;
+                    ListView_ContextMenu_SetFavorite.IsEnabled = true;
+                    break;
+                default:
+                    ListView_ContextMenu_Download.IsEnabled = true;
+                    ListView_ContextMenu_SetFavorite.IsEnabled = false;
+                    break;
+            }
         }
 
         private void Button_Search_Click(object sender, RoutedEventArgs e)
         {
             SerachPath();
         }
-
-       
 
         private void ComboBox_InputPath_KeyDown(object sender, KeyEventArgs e)
         {

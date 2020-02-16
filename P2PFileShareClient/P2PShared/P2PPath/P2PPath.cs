@@ -15,6 +15,25 @@ using System.Threading.Tasks;
 
 namespace P2PShared
 {
+    public enum P2PPathType : int
+    {
+        None,
+        Directory,
+        Audio,
+        Video,
+        Exe,
+        Zip,
+        Image,
+        Text,
+        Ppt,
+        Word,
+        Excel,
+        Pdf,
+
+        //============//예외
+        Previous = 999999
+    }
+    
     [Serializable]
     public class P2PPath
     {
