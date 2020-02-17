@@ -228,86 +228,28 @@ namespace P2PClient
             if (otherClient == null)
                 return;
 
-            P2PRequestFileAck requestAck = new P2PRequestFileAck(MyInfo.ID); 
-
+            P2PRequestFileAck requestAck = new P2PRequestFileAck(MyInfo.ID);
             try
             {
                 if (File.Exists(p2PRequestFile_packet.RequestPath) == false)
                     throw new Exception("해당 파일이 상대방의 경로에 존재하지 않습니다. 새로고침 해주세요.");
 
-                
+                SendingFile sendingFile = new SendingFile(p2PRequestFile_packet.RequestPath);
+                AddSendingFile(p2PRequestFile_packet.ID, sendingFile);
 
-                P2PClientTransferingData p2PClientTransferingData = new P2PClientTransferingData();
-                TransferingDataList.Add(p2PRequestFile_packet.ID, p2PClientTransferingData);
-
-
-
-                try
-                {
-                    // Read it in & compute a checksum of the original file
-                    byte[] fileBytes = File.ReadAllBytes(p2PRequestFile_packet.RequestPath);
-                    checksum = m_MD5Hasher.ComputeHash(fileBytes);
-                    fileSize = Convert.ToUInt32(fileBytes.Length);
-                    Console.WriteLine("{0} is {1} bytes large.", p2PRequestFile_packet.RequestPath, fileSize);
-
-                    // Compress it
-                    Stopwatch timer = new Stopwatch();
-                    using (MemoryStream compressedStream = new MemoryStream())
-                    {
-                        // Perform the actual compression
-                        DeflateStream deflateStream = new DeflateStream(compressedStream, CompressionMode.Compress, true);
-                        timer.Start();
-                        deflateStream.Write(fileBytes, 0, fileBytes.Length);
-                        deflateStream.Close();
-                        timer.Stop();
-
-                        // Put it into blocks
-                        compressedStream.Position = 0;
-                        long compressedSize = compressedStream.Length;
-                        UInt32 id = 1;
-                        while (compressedStream.Position < compressedSize)
-                        {
-                            // Grab a chunk
-                            long numBytesLeft = compressedSize - compressedStream.Position;
-                            long allocationSize = (numBytesLeft > MaxBlockSize) ? MaxBlockSize : numBytesLeft;
-                            byte[] data = new byte[allocationSize];
-                            compressedStream.Read(data, 0, data.Length);
-
-                            // Create a new block
-                            Block b = new Block(id++);
-                            b.Data = data;
-                            _blocks.Add(b.Number, b);
-                        }
-
-                        // Print some info and say we're good
-                        Console.WriteLine("{0} compressed is {1} bytes large in {2:0.000}s.", requestedFile, compressedSize, timer.Elapsed.TotalSeconds);
-                        Console.WriteLine("Sending the file in {0} blocks, using a max block size of {1} bytes.", _blocks.Count, MaxBlockSize);
-                        good = true;
-                    }
-                }
-                catch (Exception e)
-                {
-                    // Crap...
-                    Console.WriteLine("Could not prepare the file for transfer, reason:");
-                    Console.WriteLine(e.Message);
-
-                    // Reset a few things
-                    _blocks.Clear();
-                    checksum = null;
-                }
-
-                //requestAck.FileSize = Convert.ToUInt32(readBytes.Length);
-                //requestAck.CheckSum = m_MD5Hasher.ComputeHash(readBytes);
-                //requestAck.BlockSize =  
-                //requestAck.Message = "성공적으로 데이터정보를 가져왔습니다.";
+                requestAck.FileSize = sendingFile.FileSize;
+                requestAck.CheckSum = sendingFile.CheckSum;
+                requestAck.ByteBlockCount = sendingFile.Data.Count;
+                requestAck.Message = "성공적으로 데이터정보를 가져왔습니다.";
+                requestAck.FileID = sendingFile.ID;
             }
             catch (Exception e)
             {
                 requestAck.Message = e.Message;
                 requestAck.IsSuccess = false;
 
-                if (TransferingDataList.ContainsKey(p2PRequestFile_packet.ID))
-                    TransferingDataList.Remove(p2PRequestFile_packet.ID);
+                //if (TransferingDataList.ContainsKey(p2PRequestFile_packet.ID))
+                //    TransferingDataList.Remove(p2PRequestFile_packet.ID);
             }
             finally
             {
@@ -442,3 +384,9 @@ namespace P2PClient
         
     }
 }
+
+
+
+
+
+

@@ -115,7 +115,7 @@ namespace P2PClient
 
         private void DownloadFile(P2PPath path)
         {
-            SendMessageToPeer(new P2PFileReuqest(m_MasterClient.MyInfo.ID, path.FullPath));
+            SendMessageToPeer(new P2PRequestPath(m_MasterClient.MyInfo.ID, ConnectedClient.ID, path.FullPath));
         }
     }
 }

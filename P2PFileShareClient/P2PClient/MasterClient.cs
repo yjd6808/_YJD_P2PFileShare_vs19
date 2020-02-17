@@ -32,9 +32,6 @@ namespace P2PClient
         private Thread m_ClientUDPListenerThread;
         private Thread m_ClientHeartBeatThread;
 
-        private MD5 m_MD5Hasher;
-
-
         private bool m_IsUDPListened;
         private bool m_IsTCPListened;
         private bool m_IsConnected;
@@ -43,7 +40,8 @@ namespace P2PClient
         public List<P2PClientInfo> OtherClientList;
         public List<P2PClientInfo> ConnectedClientList;
         
-        public Dictionary<long, P2PClientTransferingData> TransferingDataList;      //현재 MyInfo.ID와 파일 <송수신중인 클라이언트 ID, 데이터정보>
+        public Dictionary<long, Dictionary<long, SendingFile>>      SendingFileList;      //현재 MyInfo.ID와 파일 <송수신중인 클라이언트 ID, 데이터정보>
+        public Dictionary<long, Dictionary<long, ReceivingFile>>    ReceivingFileList;
 
         private List<P2PRequestConnectAck> m_SuccessAckResponses;
 
@@ -76,7 +74,6 @@ namespace P2PClient
             m_SuccessAckResponses = new List<P2PRequestConnectAck>();
             OtherClientList = new List<P2PClientInfo>();
             ConnectedClientList= new List<P2PClientInfo>();
-            m_MD5Hasher = MD5.Create();
 
             MyInfo.UDPClient.AllowNatTraversal(true);
             MyInfo.UDPClient.Client.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
@@ -418,5 +415,100 @@ namespace P2PClient
         }
 
         
+        /// <param name="Id">파일 다운로드를 요청한 유저의 ID</param>
+        private void AddSendingFile(long Id, SendingFile sendingFile)
+        {
+            try
+            {
+                if (SendingFileList.ContainsKey(Id))
+                    SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                else
+                {
+                    SendingFileList.Add(Id, new Dictionary<long, SendingFile>());
+                    SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                }
+            }
+            catch (Exception e)
+            {
+                WindowLogger.WriteLineError("AddSendingFile : " + e.Message);
+            }
+        }
+
+        /// <param name="Id">파일 다운로드를 요청한 유저의 ID</param>
+        private void RemoveSendingFile(long Id, long fileId)
+        {
+            try
+            {
+                if (SendingFileList.ContainsKey(Id))
+                    SendingFileList[Id].Remove(fileId);
+            }
+            catch (Exception e)
+            {
+                WindowLogger.WriteLineError("RemoveSendingFile : " + e.Message);
+            }
+        }
+
+        private SendingFile GetSendingFile(long Id, long fileId)
+        {
+            try
+            {
+                if (SendingFileList.ContainsKey(Id) && SendingFileList[Id].ContainsKey(fileId))
+                    return SendingFileList[Id][fileId];
+            }
+
+            catch (Exception e)
+            {
+                WindowLogger.WriteLineError("GetSendingFile : " + e.Message);
+            }
+
+            return null;
+        }
+
+        private void AddReceivingFile(long Id, ReceivingFile receivingFile)
+        {
+            try
+            {
+                if (ReceivingFileList.ContainsKey(Id))
+                    ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                else
+                {
+                    ReceivingFileList.Add(Id, new Dictionary<long, ReceivingFile>());
+                    ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                }
+            }
+            catch (Exception e)
+            {
+                WindowLogger.WriteLineError("AddReceivingFile : " + e.Message);
+            }
+        }
+
+        private void RemoveReceivingFile(long Id, long fileId)
+        {
+            try
+            {
+                if (ReceivingFileList.ContainsKey(Id))
+                    ReceivingFileList[Id].Remove(fileId);
+            }
+            catch (Exception e)
+            {
+                WindowLogger.WriteLineError("RemoveReceivingFile : " + e.Message);
+            }
+        }
+
+        private ReceivingFile GetReceivingFile(long Id, long fileId)
+        {
+            try
+            {
+                if (ReceivingFileList.ContainsKey(Id) && SendingFileList[Id].ContainsKey(fileId))
+                    return ReceivingFileList[Id][fileId];
+            }
+
+            catch (Exception e)
+            {
+                WindowLogger.WriteLineError("GetReceivingFile : " + e.Message);
+            }
+
+            return null;
+        }
     }
 }

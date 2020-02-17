@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="TestForFileCompressing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestForFileToByteBlock.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

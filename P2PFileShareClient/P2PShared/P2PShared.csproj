@@ -48,7 +48,7 @@
     <Compile Include="Extension.cs" />
     <Compile Include="INetworkPacket.cs" />
     <Compile Include="NetworkPackets.cs" />
-    <Compile Include="P2PPath\P2PPath.cs" />
+    <Compile Include="P2PPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

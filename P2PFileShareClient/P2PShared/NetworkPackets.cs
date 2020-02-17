@@ -318,9 +318,10 @@ namespace P2PShared
     [Serializable]
     public class P2PRequestFileAck : P2PFileTransferingPacket
     {
-        public uint FileSize { get; set; }
+        public long FileID { get; set; }
         public byte[] CheckSum { get; set; }
-        public int BlockSize { get; set; }
+        public uint FileSize { get; set; }
+        public int ByteBlockCount { get; set; }
         public bool IsSuccess { get; set; }
         public string Message { get; set; }
 
