@@ -43,6 +43,9 @@ namespace P2PClient
         public Dictionary<long, Dictionary<long, SendingFile>>      SendingFileList;      //현재 MyInfo.ID와 파일 <송수신중인 클라이언트 ID, 데이터정보>
         public Dictionary<long, Dictionary<long, ReceivingFile>>    ReceivingFileList;
 
+        private object sendingFileListLocker;
+        private object receivingFileListLocker;
+
         private List<P2PRequestConnectAck> m_SuccessAckResponses;
 
 
@@ -74,6 +77,12 @@ namespace P2PClient
             m_SuccessAckResponses = new List<P2PRequestConnectAck>();
             OtherClientList = new List<P2PClientInfo>();
             ConnectedClientList= new List<P2PClientInfo>();
+
+            SendingFileList = new Dictionary<long, Dictionary<long, SendingFile>>();
+            ReceivingFileList = new Dictionary<long, Dictionary<long, ReceivingFile>>();
+
+            sendingFileListLocker = new object();
+            receivingFileListLocker = new object();
 
             MyInfo.UDPClient.AllowNatTraversal(true);
             MyInfo.UDPClient.Client.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
@@ -418,14 +427,18 @@ namespace P2PClient
         /// <param name="Id">파일 다운로드를 요청한 유저의 ID</param>
         private void AddSendingFile(long Id, SendingFile sendingFile)
         {
+            
             try
             {
-                if (SendingFileList.ContainsKey(Id))
-                    SendingFileList[Id].Add(sendingFile.ID, sendingFile);
-                else
+                lock (sendingFileListLocker)
                 {
-                    SendingFileList.Add(Id, new Dictionary<long, SendingFile>());
-                    SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                    if (SendingFileList.ContainsKey(Id))
+                        SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                    else
+                    {
+                        SendingFileList.Add(Id, new Dictionary<long, SendingFile>());
+                        SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                    }
                 }
             }
             catch (Exception e)
@@ -439,8 +452,11 @@ namespace P2PClient
         {
             try
             {
-                if (SendingFileList.ContainsKey(Id))
-                    SendingFileList[Id].Remove(fileId);
+                lock (sendingFileListLocker)
+                {
+                    if (SendingFileList.ContainsKey(Id))
+                        SendingFileList[Id].Remove(fileId);
+                }
             }
             catch (Exception e)
             {
@@ -452,8 +468,11 @@ namespace P2PClient
         {
             try
             {
-                if (SendingFileList.ContainsKey(Id) && SendingFileList[Id].ContainsKey(fileId))
-                    return SendingFileList[Id][fileId];
+                lock (sendingFileListLocker)
+                {
+                    if (SendingFileList.ContainsKey(Id) && SendingFileList[Id].ContainsKey(fileId))
+                        return SendingFileList[Id][fileId];
+                }
             }
 
             catch (Exception e)
@@ -468,12 +487,15 @@ namespace P2PClient
         {
             try
             {
-                if (ReceivingFileList.ContainsKey(Id))
-                    ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
-                else
+                lock (receivingFileListLocker)
                 {
-                    ReceivingFileList.Add(Id, new Dictionary<long, ReceivingFile>());
-                    ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                    if (ReceivingFileList.ContainsKey(Id))
+                        ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                    else
+                    {
+                        ReceivingFileList.Add(Id, new Dictionary<long, ReceivingFile>());
+                        ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                    }
                 }
             }
             catch (Exception e)
@@ -486,8 +508,11 @@ namespace P2PClient
         {
             try
             {
-                if (ReceivingFileList.ContainsKey(Id))
-                    ReceivingFileList[Id].Remove(fileId);
+                lock (receivingFileListLocker)
+                {
+                    if (ReceivingFileList.ContainsKey(Id))
+                        ReceivingFileList[Id].Remove(fileId);
+                }
             }
             catch (Exception e)
             {
@@ -499,10 +524,12 @@ namespace P2PClient
         {
             try
             {
-                if (ReceivingFileList.ContainsKey(Id) && SendingFileList[Id].ContainsKey(fileId))
-                    return ReceivingFileList[Id][fileId];
+                lock (receivingFileListLocker)
+                {
+                    if (ReceivingFileList.ContainsKey(Id) && ReceivingFileList[Id].ContainsKey(fileId))
+                        return ReceivingFileList[Id][fileId];
+                }
             }
-
             catch (Exception e)
             {
                 WindowLogger.WriteLineError("GetReceivingFile : " + e.Message);

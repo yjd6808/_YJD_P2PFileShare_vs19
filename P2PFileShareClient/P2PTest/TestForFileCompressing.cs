@@ -83,7 +83,7 @@ namespace P2PTest
 
 
         const uint                          _maxBlockSize = 8 * 1024;   // 8KB
-        [TestMethod]
+        [TestMethod, Ignore]
         public void TestMain()
         {
             _hasher = MD5.Create();

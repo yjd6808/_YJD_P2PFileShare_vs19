@@ -319,9 +319,8 @@ namespace P2PShared
     public class P2PRequestFileAck : P2PFileTransferingPacket
     {
         public long FileID { get; set; }
-        public byte[] CheckSum { get; set; }
-        public uint FileSize { get; set; }
-        public int ByteBlockCount { get; set; }
+        public long FileSize { get; set; }
+        public string FilePath { get; set; }
         public bool IsSuccess { get; set; }
         public string Message { get; set; }
 
@@ -332,7 +331,35 @@ namespace P2PShared
         }
     }
 
+    [Serializable]
+    public class P2PGiveMeFileData : P2PFileTransferingPacket
+    {
+        public long FileID { get; set; }
 
 
+        public P2PGiveMeFileData(long Id, long fileId) : base(Id)
+        {
+            this.FileID = fileId;
+        }
+    }
+
+    [Serializable]
+    public class P2PGiveMeFileDataAck : P2PFileTransferingPacket
+    {
+        public long FileID { get; set; }
+        public byte[] Data { get; set; }
+
+        public P2PGiveMeFileDataAck(long Id, long fileId, byte[] data) : base(Id)
+        {
+            this.FileID = fileId;
+            this.Data = data;
+        }
+    }
     #endregion
+
+
+
+
+
+
 }

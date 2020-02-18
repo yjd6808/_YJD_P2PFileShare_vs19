@@ -31,7 +31,7 @@ namespace P2PClient
                 StackPanel_Chat.Children.Add(new ChatMessage("상대방과 연결되어있지 않습니다", HorizontalAlignment.Right));
                 return;
             }
-            SendMessageToPeer(new P2PMessage(m_MasterClient.MyInfo.ID, TextBox_Chat.Text));
+            SendMessageToPeer(new P2PMessage(m_MasterClient.MyInfo.ID, msg));
             StackPanel_Chat.Children.Add(new ChatMessage(msg, HorizontalAlignment.Right));
             StackPanel_ScrollBar.ScrollToBottom();
         }
@@ -115,7 +115,7 @@ namespace P2PClient
 
         private void DownloadFile(P2PPath path)
         {
-            SendMessageToPeer(new P2PRequestPath(m_MasterClient.MyInfo.ID, ConnectedClient.ID, path.FullPath));
+            SendMessageToPeer(new P2PRequestFile(m_MasterClient.MyInfo.ID, path.FullPath));
         }
     }
 }

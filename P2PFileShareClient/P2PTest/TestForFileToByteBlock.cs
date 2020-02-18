@@ -27,7 +27,7 @@ namespace P2PTest
         const long _sepByte = 50000000L;
         const int _maxBlockSize = 8 * 1024;   // 8KB
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public void TestMain()
         {
             Stopwatch stopwatch = new Stopwatch();

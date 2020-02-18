@@ -92,7 +92,18 @@ namespace P2PClient
 
         private void Button_Download_Click(object sender, RoutedEventArgs e)
         {
-          
+            P2PPath selectedItem = ListView_PathList.SelectedItem as P2PPath;
+
+            if (selectedItem == null)
+                return;
+
+            if (ConnectedClient == null || ConnectedClient.IsP2PConnected == false)
+            {
+                WriteNotifyingMessage("상대방과 연결되어있지 않습니다.");
+                return;
+            }
+
+            DownloadFile(selectedItem);
         }
 
         private void ListView_ContextMemu_Download_Click(object sender, RoutedEventArgs e)

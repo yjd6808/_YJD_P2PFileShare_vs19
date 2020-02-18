@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using P2PShared;
 using P2PClient;
 using System.IO;
+using System.Threading;
 
 namespace P2PClient
 {
@@ -47,6 +48,10 @@ namespace P2PClient
                 UdpProcessP2PRequestFile((P2PRequestFile)packet, ip);
             else if (packet.GetType() == typeof(P2PRequestFileAck))
                 UdpProcessP2PRequestFileAck((P2PRequestFileAck)packet, ip);
+            else if (packet.GetType() == typeof(P2PGiveMeFileData))
+                UdpProcessP2PGiveMeFileData((P2PGiveMeFileData)packet, ip);
+            else if (packet.GetType() == typeof(P2PGiveMeFileDataAck))
+                UdpProcessP2PGiveMeFileDataAck((P2PGiveMeFileDataAck)packet, ip);
             else
                 WindowLogger.WriteLineError("다른 종류의 패킷 수신 : " + packet.GetType());
         }
@@ -228,6 +233,7 @@ namespace P2PClient
             if (otherClient == null)
                 return;
 
+
             P2PRequestFileAck requestAck = new P2PRequestFileAck(MyInfo.ID);
             try
             {
@@ -235,21 +241,19 @@ namespace P2PClient
                     throw new Exception("해당 파일이 상대방의 경로에 존재하지 않습니다. 새로고침 해주세요.");
 
                 SendingFile sendingFile = new SendingFile(p2PRequestFile_packet.RequestPath);
-                AddSendingFile(p2PRequestFile_packet.ID, sendingFile);
+                AddSendingFile(otherClient.ID, sendingFile);
 
                 requestAck.FileSize = sendingFile.FileSize;
-                requestAck.CheckSum = sendingFile.CheckSum;
-                requestAck.ByteBlockCount = sendingFile.Data.Count;
                 requestAck.Message = "성공적으로 데이터정보를 가져왔습니다.";
+                requestAck.FilePath = sendingFile.FilePath;
+                requestAck.IsSuccess = true;
                 requestAck.FileID = sendingFile.ID;
+                
             }
             catch (Exception e)
             {
                 requestAck.Message = e.Message;
                 requestAck.IsSuccess = false;
-
-                //if (TransferingDataList.ContainsKey(p2PRequestFile_packet.ID))
-                //    TransferingDataList.Remove(p2PRequestFile_packet.ID);
             }
             finally
             {
@@ -259,7 +263,76 @@ namespace P2PClient
 
         private void UdpProcessP2PRequestFileAck(P2PRequestFileAck p2PRequestFileAck_packet, IPEndPoint ip)
         {
+            P2PClientInfo otherClient = ConnectedClientList.FirstOrDefault(x => x.ID == p2PRequestFileAck_packet.ID);
 
+            if (otherClient == null)
+                return;
+
+            ReceivingFile receivingFile = new ReceivingFile(
+                p2PRequestFileAck_packet.FileID,
+                p2PRequestFileAck_packet.FileSize,
+                p2PRequestFileAck_packet.FilePath);
+            AddReceivingFile(otherClient.ID, receivingFile);
+
+            WindowLogger.WriteLineMessage("파일 ID : " + p2PRequestFileAck_packet.FileID);
+            WindowLogger.WriteLineMessage("파일크기" + p2PRequestFileAck_packet.FileSize);
+            WindowLogger.WriteLineMessage("파일명" + p2PRequestFileAck_packet.FilePath);
+            WindowLogger.WriteLineMessage("메세지 : " + p2PRequestFileAck_packet.Message + "\n");
+
+            SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, p2PRequestFileAck_packet.FileID), ip);
+        }
+
+        private void UdpProcessP2PGiveMeFileData(P2PGiveMeFileData pGiveMeFileData_packet, IPEndPoint ip)
+        {
+            long userID = pGiveMeFileData_packet.ID;
+            long fileID = pGiveMeFileData_packet.FileID;
+
+            SendingFile sendingFIle = GetSendingFile(userID, fileID);
+
+            //오류 발생시 P2PFileSendError 메시지 보내기
+
+            byte[] readBytes = sendingFIle.GetByteBlock();
+
+            if (readBytes == null)
+            {
+                sendingFIle.TerminateStream();
+                RemoveSendingFile(userID, fileID);
+
+                //상대방이 당신의 파일을 모두 다운로드 했습니다. 남기기
+                WindowLogger.WriteLineMessage("전송을 모두 완료했습니다.");
+            }
+            else
+            {
+                P2PGiveMeFileDataAck ack = new P2PGiveMeFileDataAck(MyInfo.ID, fileID, readBytes);
+                SendMessageUDP(ack, ip);
+            }
+            Thread.Sleep(1);
+        }
+
+        private void UdpProcessP2PGiveMeFileDataAck(P2PGiveMeFileDataAck p2PGiveMeFileDataAck_packet, IPEndPoint ip)
+        {
+            long userID = p2PGiveMeFileDataAck_packet.ID;
+            long fileID = p2PGiveMeFileDataAck_packet.FileID;
+
+            ReceivingFile receivingFIle = GetReceivingFile(userID, fileID);
+            receivingFIle.WriteBytes(p2PGiveMeFileDataAck_packet.Data);
+
+
+            if (receivingFIle.IsWriteOver())
+            {
+                receivingFIle.TerminateStream();
+                WindowLogger.WriteLineMessage("다운로드 완료!");
+                WindowLogger.WriteLineMessage("다운로드 완료!");
+                WindowLogger.WriteLineMessage("다운로드 완료!");
+                WindowLogger.WriteLineMessage("다운로드 완료!");
+                //파일을 모두 다운로드 했다.
+            }
+            else
+            {
+                SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
+            }
+
+            Thread.Sleep(1);
         }
 
         //=======================================================================//
