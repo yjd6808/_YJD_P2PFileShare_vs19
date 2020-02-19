@@ -240,14 +240,22 @@ namespace P2PClient
                 if (File.Exists(p2PRequestFile_packet.RequestPath) == false)
                     throw new Exception("해당 파일이 상대방의 경로에 존재하지 않습니다. 새로고침 해주세요.");
 
-                SendingFile sendingFile = new SendingFile(p2PRequestFile_packet.RequestPath);
+                SendingFile sendingFile = new SendingFile(otherClient.ID, p2PRequestFile_packet.RequestPath);
                 AddSendingFile(otherClient.ID, sendingFile);
+
+                if (OnStartSendingFile != null)
+                    OnStartSendingFile.Invoke(otherClient, sendingFile);
+
+                if (SendingFileList.Count > 0)
+                    StartSendingSynchronizingThread();
+
+
 
                 requestAck.FileSize = sendingFile.FileSize;
                 requestAck.Message = "성공적으로 데이터정보를 가져왔습니다.";
                 requestAck.FilePath = sendingFile.FilePath;
                 requestAck.IsSuccess = true;
-                requestAck.FileID = sendingFile.ID;
+                requestAck.FileID = sendingFile.FileID;
                 
             }
             catch (Exception e)
@@ -269,10 +277,18 @@ namespace P2PClient
                 return;
 
             ReceivingFile receivingFile = new ReceivingFile(
+                p2PRequestFileAck_packet.ID,
                 p2PRequestFileAck_packet.FileID,
                 p2PRequestFileAck_packet.FileSize,
                 p2PRequestFileAck_packet.FilePath);
             AddReceivingFile(otherClient.ID, receivingFile);
+
+            if (OnStartReceivingFile != null)
+                OnStartReceivingFile.Invoke(otherClient, receivingFile);
+
+            if (ReceivingFileList.Count > 0)
+                StartReceivingSynchronizingThread();
+
 
             WindowLogger.WriteLineMessage("파일 ID : " + p2PRequestFileAck_packet.FileID);
             WindowLogger.WriteLineMessage("파일크기" + p2PRequestFileAck_packet.FileSize);
@@ -287,19 +303,26 @@ namespace P2PClient
             long userID = pGiveMeFileData_packet.ID;
             long fileID = pGiveMeFileData_packet.FileID;
 
-            SendingFile sendingFIle = GetSendingFile(userID, fileID);
+            SendingFile sendingFile = GetSendingFile(userID, fileID);
 
             //오류 발생시 P2PFileSendError 메시지 보내기
 
-            byte[] readBytes = sendingFIle.GetByteBlock();
+            byte[] readBytes = sendingFile.GetByteBlock();
 
             if (readBytes == null)
             {
-                sendingFIle.TerminateStream();
+                sendingFile.TerminateStream();
                 RemoveSendingFile(userID, fileID);
 
                 //상대방이 당신의 파일을 모두 다운로드 했습니다. 남기기
                 WindowLogger.WriteLineMessage("전송을 모두 완료했습니다.");
+
+                if (OnFinishSendingFile != null)
+                    OnFinishSendingFile.Invoke(null, sendingFile);
+
+                if (SendingFileList.Count <= 0)
+                    m_IsSendingFileSynchronizingThreadStart = false;
+
             }
             else
             {
@@ -321,11 +344,17 @@ namespace P2PClient
             if (receivingFIle.IsWriteOver())
             {
                 receivingFIle.TerminateStream();
-                WindowLogger.WriteLineMessage("다운로드 완료!");
-                WindowLogger.WriteLineMessage("다운로드 완료!");
-                WindowLogger.WriteLineMessage("다운로드 완료!");
-                WindowLogger.WriteLineMessage("다운로드 완료!");
-                //파일을 모두 다운로드 했다.
+                RemoveReceivingFile(userID, fileID);
+
+                if (ReceivingFileList.Count <= 0)
+                    m_IsReceivingFileSynchronizingThreadStart = false;
+
+                if (OnFinishReceivingFile != null)
+                    OnFinishReceivingFile.Invoke(null, receivingFIle);
+
+
+
+                SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
             }
             else
             {

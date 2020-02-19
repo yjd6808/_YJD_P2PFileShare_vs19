@@ -8,6 +8,7 @@
 using P2PShared;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,8 @@ namespace P2PClient
     {
         /*==============  파일 정보 =================*/
         public static readonly int BlockSize = 8192;
-        public long ID { get; }
+        public long UserID { get; }
+        public long FileID { get; }
         public long FileSize { get; }
         public string FilePath { get; }
 
@@ -27,12 +29,17 @@ namespace P2PClient
         private long m_LeftByteSize;
         private FileStream m_FileStream;
         private bool m_IsWriteOver;
+        private Stopwatch m_Stopwatch;
 
-        public ReceivingFile(long Id, long fileSize, string filePath)
+
+        public ReceivingFile(long UserId, long FileId, long fileSize, string filePath)
         {
-            this.ID = Id;
+            this.UserID = UserId;
+            this.FileID = FileId;
             this.FileSize = fileSize;
             this.FilePath = filePath;
+            this.m_Stopwatch = new Stopwatch();
+            this.m_Stopwatch.Start();
 
             this.m_LeftByteSize = FileSize;
             this.m_IsWriteOver = false;
@@ -62,12 +69,33 @@ namespace P2PClient
             {
                 this.m_FileStream.Dispose();
                 this.m_FileStream = null;
+                this.m_Stopwatch.Stop();
             }
         }
 
         public bool IsWriteOver()
         {
             return m_IsWriteOver;
+        }
+
+        /*=================================================*/
+
+        public string GetFileName() => Path.GetFileName(FilePath);
+        public long GetLeftByteSize() => m_LeftByteSize;
+        public int GetLeftTimeTotalSeconds()
+        {
+            return 0;
+        }
+
+        public int GetDownloadSpeedPerKB()
+        {
+            return 0;
+        }
+
+        public float GetPercentage()
+        {
+            //Math.Round(value, 1)
+            return 0;
         }
     }
 }

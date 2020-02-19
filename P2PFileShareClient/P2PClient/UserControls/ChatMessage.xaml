@@ -8,8 +8,8 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Border x:Name="Border_Background" Background="Bisque" CornerRadius="15 15 15 15" Margin="10,12,10,27" MaxWidth="200">
-            <TextBlock x:Name="TextBlock_Message"   Margin="15" TextWrapping="Wrap" Foreground="Black"/>
+            <TextBlock x:Name="TextBlock_Message"   Margin="15" TextWrapping="Wrap" Foreground="Black" Text="fff"/>
         </Border>
-        <TextBlock x:Name="TextBlock_Time" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="15" Margin="0,0,14,0"/>
+        <TextBlock x:Name="TextBlock_MessageArrivedTime" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="15" Margin="0,0,14,0"/>
     </Grid>
 </UserControl>

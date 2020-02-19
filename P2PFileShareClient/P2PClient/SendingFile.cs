@@ -8,6 +8,7 @@
 using P2PShared;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -20,7 +21,8 @@ namespace P2PClient
     {
         /*==============  파일 정보 =================*/
         public static readonly int BlockSize = 8192;
-        public long ID { get; }
+        public long UserID { get; }
+        public long FileID { get; }
         public long FileSize { get; }
         public string FilePath { get; }
 
@@ -28,12 +30,16 @@ namespace P2PClient
         private int m_SendingBlockCount;
         private long m_LeftByteSize;
         private FileStream m_FileStream;
+        private Stopwatch m_Stopwatch;
 
-        public SendingFile(string filePath)
+        public SendingFile(long userId, string filePath)
         {
             this.FilePath = filePath;
-            this.ID = DateTime.Now.Ticks;
+            this.UserID = userId;
+            this.FileID = DateTime.Now.Ticks;
             this.FileSize = new FileInfo(filePath).Length;
+            this.m_Stopwatch = new Stopwatch();
+            this.m_Stopwatch.Start();
 
             this.m_SendingBlockCount = 0;
             this.m_LeftByteSize = FileSize;
@@ -70,7 +76,28 @@ namespace P2PClient
             {
                 this.m_FileStream.Dispose();
                 this.m_FileStream = null;
+                this.m_Stopwatch.Stop();
             }
+        }
+
+        /*=================================================*/
+
+        public string GetFileName() => Path.GetFileName(FilePath);
+        public long GetLeftByteSize() => m_LeftByteSize;
+        public int GetLeftTimeTotalSeconds()
+        {
+            return 0;
+        }
+
+        public int GetSendingSpeedPerKB()
+        {
+            return 0;
+        }
+
+        public float GetPercentage()
+        {
+            //Math.Round(value, 1)
+            return 0;
         }
     }
 }

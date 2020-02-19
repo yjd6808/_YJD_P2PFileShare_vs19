@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="P2PClient.SendingFileMessage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:P2PClient"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Border x:Name="Border_Background" Background="Aquamarine" CornerRadius="15 15 15 15" Margin="10,12,10,27" >
+            <StackPanel Margin="15">
+                <Grid>
+                    <ProgressBar x:Name="ProgressBar_DownloadBytes" Height="15.0" Minimum="0" Maximum="100"></ProgressBar>
+                    <TextBlock x:Name="TextBlock_DownloadBytes" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Right" Opacity="1.0">
+                        <Run Text="434212 / 4353342 바이트"></Run>
+                        <Run Text="[4.3%]"></Run>
+                        <Run Text="[324 KB/s]"></Run>
+                    </TextBlock>
+                </Grid>
+
+                <TextBlock x:Name="TextBlock_FileName" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Right" Text="몽환의 숲.mp4">
+                </TextBlock>
+                <Grid>
+                    <TextBlock x:Name="TextBlock_LeftTime" TextWrapping="Wrap" Foreground="Black" Text="남은시간 : 0분 0초" TextAlignment="Right"/>
+                    <TextBlock x:Name="TextBlock_Type" TextWrapping="Wrap" Foreground="Black" Text="전송 중..." TextAlignment="Left"/>
+                </Grid>
+
+            </StackPanel>
+        </Border>
+        <TextBlock x:Name="TextBlock_MessageArrivedTime" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="15" Margin="0,0,14,0"/>
+    </Grid>
+</UserControl>

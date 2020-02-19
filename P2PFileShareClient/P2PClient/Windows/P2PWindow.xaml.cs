@@ -24,6 +24,9 @@ namespace P2PClient
     {
         private MasterClient m_MasterClient;
 
+        private List<SendingFileMessage> m_SendingFileMessageControls;
+        private List<ReceivingFileMessage> m_ReceivingFileMessageControls;
+
         public P2PClientInfo ConnectedClient;
         public string CurrentPeerDirectory;
         public long ID;
@@ -34,6 +37,8 @@ namespace P2PClient
             this.ConnectedClient = p2PClientInfo;
             this.m_MasterClient = MasterClient.GetInstance();
             this.CurrentPeerDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            this.m_SendingFileMessageControls = new List<SendingFileMessage>();
+            this.m_ReceivingFileMessageControls = new List<ReceivingFileMessage>();
 
             InitializeComponent();
         }
@@ -81,15 +86,13 @@ namespace P2PClient
             }
         }
 
-       
-
         private void Button_Send_Click(object sender, RoutedEventArgs e)
         {
             SendText();
         }
 
-      
 
+      
         private void Button_Download_Click(object sender, RoutedEventArgs e)
         {
             P2PPath selectedItem = ListView_PathList.SelectedItem as P2PPath;

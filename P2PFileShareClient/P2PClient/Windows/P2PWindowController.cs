@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows;
 using P2PShared;
+using System.Windows.Controls;
 
 namespace P2PClient
 {
@@ -28,18 +29,103 @@ namespace P2PClient
 
             if (ConnectedClient == null || ConnectedClient.IsP2PConnected == false)
             {
-                StackPanel_Chat.Children.Add(new ChatMessage("상대방과 연결되어있지 않습니다", HorizontalAlignment.Right));
+                AddChatMessage(new ChatMessage("상대방과 연결되어있지 않습니다", HorizontalAlignment.Right));
                 return;
             }
             SendMessageToPeer(new P2PMessage(m_MasterClient.MyInfo.ID, msg));
-            StackPanel_Chat.Children.Add(new ChatMessage(msg, HorizontalAlignment.Right));
+
+            AddChatMessage(new ChatMessage(msg, HorizontalAlignment.Right));
             StackPanel_ScrollBar.ScrollToBottom();
         }
         public void ReceivePeerMessage(P2PMessage p2pMessage)
         {
-            StackPanel_Chat.Children.Add(new ChatMessage(p2pMessage.Message, Brushes.Crimson, HorizontalAlignment.Left));
+            AddChatMessage(new ChatMessage(p2pMessage.Message, Brushes.Crimson, HorizontalAlignment.Left));
             StackPanel_ScrollBar.ScrollToBottom();
         }
+
+        public void AddSendingFileMessage(SendingFile fileInfo)
+        {
+            SendingFileMessage control = new SendingFileMessage(fileInfo);
+
+            AddChatMessage(control);
+            m_SendingFileMessageControls.Add(control);
+        }
+
+        public void AddReceivingFileMessage(ReceivingFile fileInfo)
+        {
+            ReceivingFileMessage control = new ReceivingFileMessage(fileInfo);
+
+            AddChatMessage(control);
+            m_ReceivingFileMessageControls.Add(control);
+        }
+
+       
+        public void SynchronizeSendingFileMessage(SendingFile fileInfo)
+        {
+            SendingFileMessage control =  m_SendingFileMessageControls.FirstOrDefault(x => x._SendingFile.FileID == fileInfo.FileID);
+            control.SynchronizeSendingFile(fileInfo);
+        }
+
+        public void SynchronizeReceivingFileMessage(ReceivingFile fileInfo)
+        {
+            ReceivingFileMessage control = m_ReceivingFileMessageControls.FirstOrDefault(x => x._ReceivingFile.FileID == fileInfo.FileID);
+            control.SynchronizeReceivingFile(fileInfo);
+        }
+
+        public void FinishSendingFileMessage(SendingFile fileInfo)
+        {
+            SendingFileMessage control = m_SendingFileMessageControls.FirstOrDefault(x => x._SendingFile.FileID == fileInfo.FileID);
+            control.Finish();
+        }
+
+        public void FinishReceivingFileMessage(ReceivingFile fileInfo)
+        {
+            ReceivingFileMessage control = m_ReceivingFileMessageControls.FirstOrDefault(x => x._ReceivingFile.FileID == fileInfo.FileID);
+            control.Finish();
+        }
+
+
+        public void AddChatMessage(UserControl userControl)
+        {
+            if (StackPanel_Chat.Children.Count >= 100)
+                StackPanel_Chat.Children.RemoveAt(0);
+
+            if (StackPanel_Chat.Children.Count == 0)
+                StackPanel_Chat.Children.Add(userControl);
+            else
+            {
+                int lastIdx = StackPanel_Chat.Children.Count - 1;
+
+                if (userControl.GetType() == typeof(ChatMessage))
+                {
+                    //마지막 요소가 챗매시지 컨트롤이 아닐경우
+                    if (StackPanel_Chat.Children[lastIdx].GetType() != typeof(ChatMessage))
+                        //맨뒤 삽입
+                        StackPanel_Chat.Children.Add(userControl);
+                    else
+                    {
+                        int idx = lastIdx;
+                        for (idx = StackPanel_Chat.Children.Count - 1; idx >= 0; idx--)
+                        {
+                            if (StackPanel_Chat.Children[idx].GetType() == typeof(ChatMessage))
+                                break;
+                            else if (StackPanel_Chat.Children[idx].GetType() == typeof(ReceivingFileMessage) && 
+                                     ((ReceivingFileMessage)StackPanel_Chat.Children[idx]).IsReceivingOver)
+                                break;
+                            else if (StackPanel_Chat.Children[idx].GetType() == typeof(SendingFileMessage) &&
+                                     ((SendingFileMessage)StackPanel_Chat.Children[idx]).IsSendingOver)
+                                break;
+                        }
+
+                        StackPanel_Chat.Children.Insert(idx + 1, userControl); 
+                    }
+                }
+                else //Sending Receiving 관련 메시지는 그냥 추가해주면됨
+                    StackPanel_Chat.Children.Add(userControl);
+            }
+        }
+
+
 
         public void ReceivePeerMessage(P2PRequestPath P2PRequestPathPacket)
         {
@@ -47,7 +133,7 @@ namespace P2PClient
             {
                 case P2PRequestPathStatus.Failed:
                     {
-                        StackPanel_Chat.Children.Add(
+                        AddChatMessage(
                             new ChatMessage(
                             P2PRequestPathPacket.Message,
                             Brushes.LightGray,
@@ -70,7 +156,7 @@ namespace P2PClient
 
         public void ConnectedToPeer()
         {
-            StackPanel_Chat.Children.Add(new ChatMessage("상대방이 입장하였습니다.",
+            AddChatMessage(new ChatMessage("상대방이 입장하였습니다.",
                  Brushes.LightPink,
                  Brushes.Black,
                  HorizontalAlignment.Center));
@@ -88,7 +174,7 @@ namespace P2PClient
 
         private void WriteNotifyingMessage(string message)
         {
-            StackPanel_Chat.Children.Add(new ChatMessage(message,
+            AddChatMessage(new ChatMessage(message,
                 Brushes.LightGray,
                 Brushes.Black,
                 HorizontalAlignment.Center));

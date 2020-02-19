@@ -24,8 +24,8 @@ namespace P2PClient
         {
             InitializeComponent();
             TextBlock_Message.Text = msg;
-            TextBlock_Time.Text = DateTime.Now.ToShortTimeString();
-            TextBlock_Time.HorizontalAlignment = alignment;
+            TextBlock_MessageArrivedTime.Text = DateTime.Now.ToShortTimeString();
+            TextBlock_MessageArrivedTime.HorizontalAlignment = alignment;
             TextBlock_Message.HorizontalAlignment = alignment;
             this.HorizontalAlignment = alignment;
         }
@@ -34,9 +34,9 @@ namespace P2PClient
         {
             InitializeComponent();
             TextBlock_Message.Text = msg;
-            TextBlock_Time.Text = DateTime.Now.ToShortTimeString();
+            TextBlock_MessageArrivedTime.Text = DateTime.Now.ToShortTimeString();
             Border_Background.Background = backgroundColor;
-            TextBlock_Time.HorizontalAlignment = alignment;
+            TextBlock_MessageArrivedTime.HorizontalAlignment = alignment;
             TextBlock_Message.HorizontalAlignment = alignment;
             this.HorizontalAlignment = alignment;
         }
@@ -45,10 +45,10 @@ namespace P2PClient
         {
             InitializeComponent();
             TextBlock_Message.Text = msg;
-            TextBlock_Time.Text = DateTime.Now.ToShortTimeString();
+            TextBlock_MessageArrivedTime.Text = DateTime.Now.ToShortTimeString();
             Border_Background.Background = backgroundColor;
             TextBlock_Message.Foreground = foregroundColor;
-            TextBlock_Time.HorizontalAlignment = alignment;
+            TextBlock_MessageArrivedTime.HorizontalAlignment = alignment;
             TextBlock_Message.HorizontalAlignment = alignment;
             this.HorizontalAlignment = alignment;
         }

@@ -48,6 +48,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -72,13 +74,20 @@
     </Compile>
     <Compile Include="ReceivingFile.cs" />
     <Compile Include="SendingFile.cs" />
+    <Compile Include="UserControls\SendingFileMessage.xaml.cs">
+      <DependentUpon>SendingFileMessage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\ChatMessage.xaml.cs">
       <DependentUpon>ChatMessage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MasterClient.cs" />
     <Compile Include="MasterClientPacketParser.cs" />
+    <Compile Include="UserControls\ReceivingFileMessage.xaml.cs">
+      <DependentUpon>ReceivingFileMessage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\MainFrameController.cs" />
     <Compile Include="Windows\MainFrameEvents.cs" />
+    <Compile Include="MasterClientSynchronizingEvent.cs" />
     <Compile Include="Windows\P2PWindowController.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -116,7 +125,15 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UserControls\SendingFileMessage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UserControls\ChatMessage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ReceivingFileMessage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -165,5 +165,78 @@ namespace P2PClient
             });
         }
 
+        private void M_MasterClient_OnStartReceivingFile(object sender, ReceivingFile e)
+        {
+            P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.UserID);
+
+            Dispatcher.Invoke(() =>
+            {
+                p2pWindow.AddReceivingFileMessage(e);
+            });
+        }
+
+        private void M_MasterClient_OnStartSendingFile(object sender, SendingFile e)
+        {
+            P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.UserID);
+
+            Dispatcher.Invoke(() =>
+            {
+                p2pWindow.AddSendingFileMessage(e);
+            });
+        }
+
+
+        private void M_MasterClient_OnSynchronizingReceivingFile(object sender, ReceivingFile e)
+        {
+            P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.UserID);
+
+            //if (p2pWindow == null)
+                //return;
+
+            Dispatcher.Invoke(() =>
+            {
+                p2pWindow.SynchronizeReceivingFileMessage(e);
+            });
+        }
+        private void M_MasterClient_OnSynchronizingSendingFile(object sender, SendingFile e)
+        {
+            P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.UserID);
+
+            //if (p2pWindow == null)
+            //return;
+
+            Dispatcher.Invoke(() =>
+            {
+                p2pWindow.SynchronizeSendingFileMessage(e);
+            });
+        }
+
+        private void M_MasterClient_OnFinishReceivingFile(object sender, ReceivingFile e)
+        {
+            P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.UserID);
+
+            //if (p2pWindow == null)
+            //return;
+
+            Dispatcher.Invoke(() =>
+            {
+                p2pWindow.FinishReceivingFileMessage(e);
+            });
+        }
+
+        private void M_MasterClient_OnFinishSendingFile(object sender, SendingFile e)
+        {
+            P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.UserID);
+
+            //if (p2pWindow == null)
+            //return;
+
+            Dispatcher.Invoke(() =>
+            {
+                p2pWindow.FinishSendingFileMessage(e);
+            });
+        }
+
+
     }
 }

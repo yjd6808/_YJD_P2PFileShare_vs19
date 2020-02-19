@@ -32,6 +32,8 @@ namespace P2PClient
 
         private MasterClient m_MasterClient;
         public List<P2PWindow> P2PWindows;
+
+        List<int> a = new List<int> { 1, 2, 3 };
         
 
         public MainFrame()
@@ -55,13 +57,17 @@ namespace P2PClient
             m_MasterClient.OnOtherClientP2PRequestPathArrived += M_MasterClient_OnOtherClientP2PRequestPathArrived;
             m_MasterClient.OnOtherClientP2PDisconnected += M_MasterClient_OnOtherClientP2PDisconnected;
 
+            m_MasterClient.OnStartSendingFile += M_MasterClient_OnStartSendingFile;
+            m_MasterClient.OnStartReceivingFile += M_MasterClient_OnStartReceivingFile;
+            m_MasterClient.OnSynchronizingReceivingFile += M_MasterClient_OnSynchronizingReceivingFile;
+            m_MasterClient.OnSynchronizingSendingFile += M_MasterClient_OnSynchronizingSendingFile;
+            m_MasterClient.OnFinishSendingFile += M_MasterClient_OnFinishSendingFile;
+            m_MasterClient.OnFinishReceivingFile += M_MasterClient_OnFinishReceivingFile;
+
             m_MasterClient.Init();
         }
 
-        
-       
-
-
+      
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             m_MasterClient.DisconnectToMainServer();

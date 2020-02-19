@@ -31,9 +31,13 @@ namespace P2PClient
         private Thread m_ClientTCPListenerThread;
         private Thread m_ClientUDPListenerThread;
         private Thread m_ClientHeartBeatThread;
+        private Thread m_ReceivingFileSynchronizingThread;
+        private Thread m_SendingFileSynchronizingThread;
 
         private bool m_IsUDPListened;
         private bool m_IsTCPListened;
+        private bool m_IsReceivingFileSynchronizingThreadStart;
+        private bool m_IsSendingFileSynchronizingThreadStart;
         private bool m_IsConnected;
 
         public P2PClientInfo MyInfo;
@@ -61,15 +65,23 @@ namespace P2PClient
         public event EventHandler<P2PRequestPath>   OnOtherClientP2PRequestPathArrived;
         public event EventHandler                   OnOtherClientP2PDisconnected;
 
+        public event EventHandler<ReceivingFile>    OnStartReceivingFile;
+        public event EventHandler<SendingFile>      OnStartSendingFile;
+        public event EventHandler<ReceivingFile>    OnSynchronizingReceivingFile;
+        public event EventHandler<SendingFile>      OnSynchronizingSendingFile;
+        public event EventHandler<ReceivingFile>    OnFinishReceivingFile;
+        public event EventHandler<SendingFile>      OnFinishSendingFile;
+
         public event EventHandler                   OnServerConnect;
         public event EventHandler                   OnServerDisconnect;
-
-        
 
         private MasterClient()
         {
             m_IsUDPListened = false;
             m_IsTCPListened = false;
+
+            m_IsReceivingFileSynchronizingThreadStart = false;
+            m_IsSendingFileSynchronizingThreadStart = false;
 
             MyInfo = new P2PClientInfo();
             MyInfo.TCPClient = new TcpClient();
@@ -399,8 +411,8 @@ namespace P2PClient
             {
                 while (m_IsUDPListened)
                 {
-                    try
-                    {
+                    //try
+                    //{
                         IPEndPoint EP = MyInfo.InternalEndpoint;
 
                         if (EP != null)
@@ -409,11 +421,11 @@ namespace P2PClient
                             INetworkPacket packet = ReceivedBytes.ToP2PBase();
                             UdpPacketParse(packet, EP);
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        WindowLogger.WriteLineError("UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
-                    }
+                    //}
+                    //catch (Exception e)
+                    //{
+                    //    WindowLogger.WriteLineError("UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
+                    //}
                 }
             }));
 
@@ -433,11 +445,11 @@ namespace P2PClient
                 lock (sendingFileListLocker)
                 {
                     if (SendingFileList.ContainsKey(Id))
-                        SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                        SendingFileList[Id].Add(sendingFile.FileID, sendingFile);
                     else
                     {
                         SendingFileList.Add(Id, new Dictionary<long, SendingFile>());
-                        SendingFileList[Id].Add(sendingFile.ID, sendingFile);
+                        SendingFileList[Id].Add(sendingFile.FileID, sendingFile);
                     }
                 }
             }
@@ -490,11 +502,11 @@ namespace P2PClient
                 lock (receivingFileListLocker)
                 {
                     if (ReceivingFileList.ContainsKey(Id))
-                        ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                        ReceivingFileList[Id].Add(receivingFile.FileID, receivingFile);
                     else
                     {
                         ReceivingFileList.Add(Id, new Dictionary<long, ReceivingFile>());
-                        ReceivingFileList[Id].Add(receivingFile.ID, receivingFile);
+                        ReceivingFileList[Id].Add(receivingFile.FileID, receivingFile);
                     }
                 }
             }
