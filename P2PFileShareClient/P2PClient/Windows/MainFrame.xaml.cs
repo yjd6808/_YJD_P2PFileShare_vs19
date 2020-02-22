@@ -33,9 +33,6 @@ namespace P2PClient
         private MasterClient m_MasterClient;
         public List<P2PWindow> P2PWindows;
 
-        List<int> a = new List<int> { 1, 2, 3 };
-        
-
         public MainFrame()
         {
             InitializeComponent();
@@ -45,6 +42,7 @@ namespace P2PClient
             s_MainFrame = this;
             m_MasterClient = MasterClient.GetInstance();
             P2PWindows = new List<P2PWindow>();
+            
 
             m_MasterClient.OnOtherClientAdded += M_MasterClient_OnOtherClientAdded;
             m_MasterClient.OnOtherClientUpdated += M_MasterClient_OnOtherClientUpdated;
@@ -63,11 +61,19 @@ namespace P2PClient
             m_MasterClient.OnSynchronizingSendingFile += M_MasterClient_OnSynchronizingSendingFile;
             m_MasterClient.OnFinishSendingFile += M_MasterClient_OnFinishSendingFile;
             m_MasterClient.OnFinishReceivingFile += M_MasterClient_OnFinishReceivingFile;
+            m_MasterClient.OnReceiveTransferingError += M_MasterClient_OnReceiveTransferingError;
+
+            if (Environment.CurrentDirectory.Contains("Debug"))
+                Label_Version.Content = "디버그 (1.0v)";
+            else
+                Label_Version.Content = "릴리즈 (1.0v)";
 
             m_MasterClient.Init();
+            Setting.Load();
         }
 
       
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             m_MasterClient.DisconnectToMainServer();

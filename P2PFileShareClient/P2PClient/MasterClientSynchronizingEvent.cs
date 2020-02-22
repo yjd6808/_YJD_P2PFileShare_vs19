@@ -38,7 +38,7 @@ namespace P2PClient
                             }
                         }
                     }
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                 }
 
             }));
@@ -75,7 +75,7 @@ namespace P2PClient
                             }
                         }
                     }
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                 }
             }));
 

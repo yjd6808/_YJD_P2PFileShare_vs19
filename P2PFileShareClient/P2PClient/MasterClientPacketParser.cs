@@ -52,18 +52,22 @@ namespace P2PClient
                 UdpProcessP2PGiveMeFileData((P2PGiveMeFileData)packet, ip);
             else if (packet.GetType() == typeof(P2PGiveMeFileDataAck))
                 UdpProcessP2PGiveMeFileDataAck((P2PGiveMeFileDataAck)packet, ip);
+            else if (packet.GetType() == typeof(P2PFileTransferingError))
+                UdpProcessP2PFileTransferingError((P2PFileTransferingError)packet);
             else
                 WindowLogger.WriteLineError("다른 종류의 패킷 수신 : " + packet.GetType());
+
+            
         }
 
         private void UdpProcessP2PClient(P2PClientInfo clientInfo_packet)
         {
-            P2PClientInfo p2pClient = GetAllClients().FirstOrDefault(x => x.ID == clientInfo_packet.ID);
+            GetAllClients().TryGetValue(clientInfo_packet.ID, out P2PClientInfo p2pClient) ;
 
             if (p2pClient == null)
             {
                 p2pClient = clientInfo_packet;
-                OtherClientList.Add(clientInfo_packet);
+                OtherClientList.Add(clientInfo_packet.ID, clientInfo_packet);
                 if (OnOtherClientAdded != null)
                     OnOtherClientAdded.Invoke(this, p2pClient);
             }
@@ -93,7 +97,10 @@ namespace P2PClient
 
         private void UdpProcessP2PRequestConnect(P2PRequestConnect p2pRequestConnect_packet, IPEndPoint ip)
         {
-            P2PClientInfo CI = OtherClientList.FirstOrDefault(x => x.ID == p2pRequestConnect_packet.ID);
+            OtherClientList.TryGetValue(p2pRequestConnect_packet.ID, out P2PClientInfo CI);
+
+            if (CI == null)
+                throw new Exception("P2PRequestConnect NPE 발생");
 
             //리스트있던 EP와 Ack요청이온 EP가 같으나 포트가 다를경우 포트를 수정해줌
             if (CI.ExternalEndpoint.Address.Equals(ip.Address) && CI.ExternalEndpoint.Port != ip.Port)
@@ -123,10 +130,10 @@ namespace P2PClient
 
         private void UdpProcessP2PRequestConnectAck(P2PRequestConnectAck p2pRequestConnect_packet, IPEndPoint ip)
         {
-            P2PClientInfo CI = OtherClientList.FirstOrDefault(x => x.ID == p2pRequestConnect_packet.ID);
+            OtherClientList.TryGetValue(p2pRequestConnect_packet.ID, out P2PClientInfo CI);
 
             if (CI == null)
-                return;
+                throw new Exception("P2PRequestConnectAck NPE 발생");
 
             m_SuccessAckResponses.Add(p2pRequestConnect_packet);
             WindowLogger.WriteLineMessage(ip + "로부터 연결되었다는 메시지를 수신하였습니다.");
@@ -135,7 +142,7 @@ namespace P2PClient
        
         private void UdpProcessP2PMessage(P2PMessage P2PMessage_packet)
         {
-            P2PClientInfo otherClient = ConnectedClientList.FirstOrDefault(x => x.ID == P2PMessage_packet.ID);
+            ConnectedClientList.TryGetValue(P2PMessage_packet.ID, out P2PClientInfo otherClient);
 
             if (otherClient == null)
             {
@@ -149,7 +156,7 @@ namespace P2PClient
 
         private void UdpProcessP2PRequestPath(P2PRequestPath p2pRequestPath_packet, IPEndPoint ip)
         {
-            P2PClientInfo client = GetAllClients().FirstOrDefault(x => x.ID == p2pRequestPath_packet.ID);
+            GetAllClients().TryGetValue(p2pRequestPath_packet.ID, out P2PClientInfo client);
 
             if (client == null)
             {
@@ -204,7 +211,7 @@ namespace P2PClient
 
         private void UdpProcessP2PNotification(P2PNotification p2pNotification_packet)
         {
-            P2PClientInfo otherClient = ConnectedClientList.FirstOrDefault(x => x.ID == p2pNotification_packet.ID);
+            ConnectedClientList.TryGetValue(p2pNotification_packet.ID, out P2PClientInfo otherClient);
 
             if (otherClient == null)
             {
@@ -228,7 +235,7 @@ namespace P2PClient
 
         private void UdpProcessP2PRequestFile(P2PRequestFile p2PRequestFile_packet, IPEndPoint ip)
         {
-            P2PClientInfo otherClient = ConnectedClientList.FirstOrDefault(x => x.ID == p2PRequestFile_packet.ID);
+            ConnectedClientList.TryGetValue(p2PRequestFile_packet.ID, out P2PClientInfo otherClient);
 
             if (otherClient == null)
                 return;
@@ -249,19 +256,14 @@ namespace P2PClient
                 if (SendingFileList.Count > 0)
                     StartSendingSynchronizingThread();
 
-
-
                 requestAck.FileSize = sendingFile.FileSize;
-                requestAck.Message = "성공적으로 데이터정보를 가져왔습니다.";
                 requestAck.FilePath = sendingFile.FilePath;
-                requestAck.IsSuccess = true;
                 requestAck.FileID = sendingFile.FileID;
                 
             }
             catch (Exception e)
             {
-                requestAck.Message = e.Message;
-                requestAck.IsSuccess = false;
+                SendMessageUDP(new P2PFileTransferingError(MyInfo.ID, P2PFileTransferingType.P2PRequestFile, "(E01) 파일 다운로드 요청중 오류가 발생하였습니다 : " + e.Message), ip);
             }
             finally
             {
@@ -271,99 +273,126 @@ namespace P2PClient
 
         private void UdpProcessP2PRequestFileAck(P2PRequestFileAck p2PRequestFileAck_packet, IPEndPoint ip)
         {
-            P2PClientInfo otherClient = ConnectedClientList.FirstOrDefault(x => x.ID == p2PRequestFileAck_packet.ID);
+            try
+            {
+                ConnectedClientList.TryGetValue(p2PRequestFileAck_packet.ID, out P2PClientInfo otherClient);
 
-            if (otherClient == null)
-                return;
+                if (otherClient == null)
+                    return;
 
-            ReceivingFile receivingFile = new ReceivingFile(
-                p2PRequestFileAck_packet.ID,
-                p2PRequestFileAck_packet.FileID,
-                p2PRequestFileAck_packet.FileSize,
-                p2PRequestFileAck_packet.FilePath);
-            AddReceivingFile(otherClient.ID, receivingFile);
+                ReceivingFile receivingFile = new ReceivingFile(
+                    p2PRequestFileAck_packet.ID,
+                    p2PRequestFileAck_packet.FileID,
+                    p2PRequestFileAck_packet.FileSize,
+                    p2PRequestFileAck_packet.FilePath);
+                AddReceivingFile(otherClient.ID, receivingFile);
 
-            if (OnStartReceivingFile != null)
-                OnStartReceivingFile.Invoke(otherClient, receivingFile);
+                if (OnStartReceivingFile != null)
+                    OnStartReceivingFile.Invoke(otherClient, receivingFile);
 
-            if (ReceivingFileList.Count > 0)
-                StartReceivingSynchronizingThread();
+                if (ReceivingFileList.Count > 0)
+                    StartReceivingSynchronizingThread();
 
+                SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, p2PRequestFileAck_packet.FileID), ip);
+            }
+            catch (Exception e)
+            {
+                //이건 서버 전송할 필요가없다.
+                if (OnReceiveTransferingError != null)
+                    OnReceiveTransferingError.Invoke(null, new P2PFileTransferingError(p2PRequestFileAck_packet.ID, P2PFileTransferingType.P2PRequestFileAck, "(E02) 다운로드 중 오류가 발생하였습니다. : " + e.Message));
 
-            WindowLogger.WriteLineMessage("파일 ID : " + p2PRequestFileAck_packet.FileID);
-            WindowLogger.WriteLineMessage("파일크기" + p2PRequestFileAck_packet.FileSize);
-            WindowLogger.WriteLineMessage("파일명" + p2PRequestFileAck_packet.FilePath);
-            WindowLogger.WriteLineMessage("메세지 : " + p2PRequestFileAck_packet.Message + "\n");
-
-            SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, p2PRequestFileAck_packet.FileID), ip);
+                SendMessageUDP(new P2PFileTransferingError(MyInfo.ID, P2PFileTransferingType.P2PRequestFileAck, "해당 파일에 대한 로그제거", p2PRequestFileAck_packet.FileID), ip);
+            }
         }
 
         private void UdpProcessP2PGiveMeFileData(P2PGiveMeFileData pGiveMeFileData_packet, IPEndPoint ip)
         {
-            long userID = pGiveMeFileData_packet.ID;
-            long fileID = pGiveMeFileData_packet.FileID;
-
-            SendingFile sendingFile = GetSendingFile(userID, fileID);
-
-            //오류 발생시 P2PFileSendError 메시지 보내기
-
-            byte[] readBytes = sendingFile.GetByteBlock();
-
-            if (readBytes == null)
+            try
             {
-                sendingFile.TerminateStream();
-                RemoveSendingFile(userID, fileID);
+                long userID = pGiveMeFileData_packet.ID;
+                long fileID = pGiveMeFileData_packet.FileID;
 
-                //상대방이 당신의 파일을 모두 다운로드 했습니다. 남기기
-                WindowLogger.WriteLineMessage("전송을 모두 완료했습니다.");
+                SendingFile sendingFile = GetSendingFile(userID, fileID);
 
-                if (OnFinishSendingFile != null)
-                    OnFinishSendingFile.Invoke(null, sendingFile);
+                byte[] readBytes = sendingFile.GetByteBlock();
 
-                if (SendingFileList.Count <= 0)
-                    m_IsSendingFileSynchronizingThreadStart = false;
+                if (readBytes == null)
+                {
+                    sendingFile.TerminateStream();
+                    RemoveSendingFile(userID, fileID);
 
+                    if (OnFinishSendingFile != null)
+                        OnFinishSendingFile.Invoke(null, sendingFile);
+
+                    if (SendingFileList.Count <= 0)
+                        m_IsSendingFileSynchronizingThreadStart = false;
+                }
+                else
+                {
+                    P2PGiveMeFileDataAck ack = new P2PGiveMeFileDataAck(MyInfo.ID, fileID, readBytes);
+                    SendMessageUDP(ack, ip);
+                    sendingFile.AddTransferedByteInOneSecondSafe(readBytes.Length);
+                    Thread.Sleep(1);
+                }
+                
             }
-            else
+            catch (Exception e)
             {
-                P2PGiveMeFileDataAck ack = new P2PGiveMeFileDataAck(MyInfo.ID, fileID, readBytes);
-                SendMessageUDP(ack, ip);
+                SendMessageUDP(new P2PFileTransferingError(MyInfo.ID, P2PFileTransferingType.P2PGiveMeFileData, "(E03) 다운로드 중 오류가 발생하였습니다. : " + e.Message), ip);
             }
-            Thread.Sleep(1);
+            
         }
 
         private void UdpProcessP2PGiveMeFileDataAck(P2PGiveMeFileDataAck p2PGiveMeFileDataAck_packet, IPEndPoint ip)
         {
-            long userID = p2PGiveMeFileDataAck_packet.ID;
-            long fileID = p2PGiveMeFileDataAck_packet.FileID;
-
-            ReceivingFile receivingFIle = GetReceivingFile(userID, fileID);
-            receivingFIle.WriteBytes(p2PGiveMeFileDataAck_packet.Data);
-
-
-            if (receivingFIle.IsWriteOver())
+            try
             {
-                receivingFIle.TerminateStream();
-                RemoveReceivingFile(userID, fileID);
+                long userID = p2PGiveMeFileDataAck_packet.ID;
+                long fileID = p2PGiveMeFileDataAck_packet.FileID;
 
-                if (ReceivingFileList.Count <= 0)
-                    m_IsReceivingFileSynchronizingThreadStart = false;
-
-                if (OnFinishReceivingFile != null)
-                    OnFinishReceivingFile.Invoke(null, receivingFIle);
+                ReceivingFile receivingFIle = GetReceivingFile(userID, fileID);
+                receivingFIle.WriteBytes(p2PGiveMeFileDataAck_packet.Data);
 
 
+                if (receivingFIle.IsWriteOver())
+                {
+                    receivingFIle.TerminateStream();
+                    RemoveReceivingFile(userID, fileID);
 
-                SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
+                    if (ReceivingFileList.Count <= 0)
+                        m_IsReceivingFileSynchronizingThreadStart = false;
+
+                    if (OnFinishReceivingFile != null)
+                        OnFinishReceivingFile.Invoke(null, receivingFIle);
+
+                    SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
+                }
+                else
+                {
+                    SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
+                    Thread.Sleep(1);
+                }
             }
-            else
+            catch(Exception e)
             {
-                SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
+                //이건 서버 전송할 필요가없다.
+                if (OnReceiveTransferingError != null)
+                    OnReceiveTransferingError.Invoke(null, new P2PFileTransferingError(p2PGiveMeFileDataAck_packet.ID, P2PFileTransferingType.P2PGiveMeFileDataAck, "(E04) 다운로드 중 오류가 발생하였습니다. : " + e.Message));
             }
-
-            Thread.Sleep(1);
+            
         }
 
+        private void UdpProcessP2PFileTransferingError(P2PFileTransferingError p2PFileTransferingError)
+        {
+            ConnectedClientList.TryGetValue(p2PFileTransferingError.ID, out P2PClientInfo otherClient);
+
+            if (otherClient == null)
+                return;
+
+            if (OnReceiveTransferingError != null)
+                OnReceiveTransferingError.Invoke(null, p2PFileTransferingError);
+        }
+        
         //=======================================================================//
         //                                                                       //
         //                         TCP 패킷 처리                                 //
@@ -398,12 +427,12 @@ namespace P2PClient
 
 
 
-            P2PClientInfo p2pClient = OtherClientList.FirstOrDefault(x => x.ID == clientInfo_packet.ID);
+            OtherClientList.TryGetValue(clientInfo_packet.ID, out P2PClientInfo p2pClient);
 
             if (p2pClient == null)
             {
                 p2pClient = clientInfo_packet;
-                OtherClientList.Add(clientInfo_packet);
+                OtherClientList.Add(clientInfo_packet.ID, clientInfo_packet);
                 if (OnOtherClientAdded != null)
                     OnOtherClientAdded.Invoke(this, p2pClient);
             }
@@ -431,18 +460,7 @@ namespace P2PClient
                     break;
                 case NotificationType.ClientDisconnected:
                     {
-                        long  senderID = long.Parse(notification_packet.Tag.ToString());
-                        P2PClientInfo clientInfo = OtherClientList.FirstOrDefault(x => x.ID == senderID);
-
-                        if (clientInfo != null)
-                        {
-                            if (OnOtherClientDisconnected != null)
-                                OnOtherClientDisconnected.Invoke(this, clientInfo);
-
-                            OtherClientList.Remove(clientInfo);
-                        }
-
-                        P2PClientInfo p2pConnectedClient = ConnectedClientList.FirstOrDefault(x => x.ID == senderID);
+                        ReceiveDisconnedtedClient(long.Parse(notification_packet.Tag.ToString()));
                     }
                     break;
                 default:
@@ -452,7 +470,7 @@ namespace P2PClient
 
         private void TcpProcessRequestP2PConnect(RequestP2PConnect requestp2pconnect_packet)
         {
-            P2PClientInfo requesterClient = OtherClientList.FirstOrDefault(x => x.ID == requestp2pconnect_packet.ID);
+            OtherClientList.TryGetValue(requestp2pconnect_packet.ID, out P2PClientInfo requesterClient);
 
             if (requesterClient == null)
             {
@@ -471,7 +489,8 @@ namespace P2PClient
                 requesterClient.UDPEndPoint = ResponsiveEP;
                 requesterClient.IsP2PConnected = true;
 
-                ConnectedClientList.Add(requesterClient);
+                if (ConnectedClientList.TryGetValue(requesterClient.ID, out P2PClientInfo p2PClientInfo) == false)
+                    ConnectedClientList.Add(requesterClient.ID, requesterClient);
 
                 if (OnOtherClientP2PConnected != null)
                     OnOtherClientP2PConnected.Invoke(requesterClient, new EventArgs());
@@ -480,7 +499,7 @@ namespace P2PClient
                     OnOtherClientUpdated.Invoke(this, requesterClient);
             }
             else
-                WindowLogger.WriteLineError(requesterClient.ToString() + "과 P2P 연결이 성공하였습니다.[수신측]");
+                WindowLogger.WriteLineError(requesterClient.ToString() + "과 P2P 연결이 실패하였습니다.[수신측]");
         }
 
         

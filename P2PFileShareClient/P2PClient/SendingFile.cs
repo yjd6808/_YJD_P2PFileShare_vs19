@@ -31,6 +31,13 @@ namespace P2PClient
         private long m_LeftByteSize;
         private FileStream m_FileStream;
         private Stopwatch m_Stopwatch;
+        private object m_TransferedByteLocker;
+        private int m_TransferedByteInOneSecond;
+        private int m_SynchronizeTickCount;
+
+        private int m_TransferingRate;
+
+        private const int m_MaximumSynchronizeTickCount = 10;
 
         public SendingFile(long userId, string filePath)
         {
@@ -45,6 +52,10 @@ namespace P2PClient
             this.m_LeftByteSize = FileSize;
 
             this.m_FileStream = File.OpenRead(filePath);
+            this.m_TransferedByteLocker = new object();
+            this.m_TransferedByteInOneSecond = 0;
+            this.m_SynchronizeTickCount = 0;
+            this.m_TransferingRate = 0;
         }
 
         ~SendingFile()
@@ -74,6 +85,7 @@ namespace P2PClient
         {
             if (this.m_FileStream != null)
             {
+                this.m_FileStream.Close();
                 this.m_FileStream.Dispose();
                 this.m_FileStream = null;
                 this.m_Stopwatch.Stop();
@@ -82,22 +94,58 @@ namespace P2PClient
 
         /*=================================================*/
 
+        public void AddTransferedByteInOneSecondSafe(int bytes)
+        {
+            lock (m_TransferedByteLocker)
+                m_TransferedByteInOneSecond += bytes;
+        }
+
+        public int GetTransferedByteInOneSecondSafe()
+        {
+            int safeValue = 0;
+            lock (m_TransferedByteLocker)
+                safeValue = m_TransferedByteInOneSecond;
+            return safeValue;
+        }
+
+        public void AddSynchronizeTickCount(int tick)
+        {
+            m_SynchronizeTickCount += tick;
+
+            if (m_SynchronizeTickCount >= m_MaximumSynchronizeTickCount)
+            {
+                m_SynchronizeTickCount = 0;
+
+                lock (m_TransferedByteLocker)
+                {
+                    m_TransferingRate = m_TransferedByteInOneSecond;
+                    m_TransferedByteInOneSecond = 0;
+                }
+            }
+        }
+
         public string GetFileName() => Path.GetFileName(FilePath);
         public long GetLeftByteSize() => m_LeftByteSize;
         public int GetLeftTimeTotalSeconds()
         {
-            return 0;
+            if (m_TransferingRate <= 0)
+                return 0;
+
+            return (int)(m_LeftByteSize / m_TransferingRate);
         }
 
-        public int GetSendingSpeedPerKB()
+       
+        public (TransferUnit unit, float speed) GetSendingSpeed()
         {
-            return 0;
+            if (m_TransferingRate <= 0)
+                return (TransferUnit.B, 0.0f);
+
+            float speed = m_TransferingRate / 1048576.0f;
+            if (speed < 1.0f)
+                return (TransferUnit.KB, m_TransferingRate / 1024f);
+            return (TransferUnit.MB, speed);
         }
 
-        public float GetPercentage()
-        {
-            //Math.Round(value, 1)
-            return 0;
-        }
+        public double GetPercentage() => (double)(FileSize - m_LeftByteSize) / FileSize * 100D;
     }
 }

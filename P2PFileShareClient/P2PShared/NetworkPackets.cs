@@ -289,7 +289,15 @@ namespace P2PShared
 
     #region P2PFileTransfer [P2P]
 
-    
+    public enum P2PFileTransferingType
+    {
+        P2PRequestFile,
+        P2PRequestFileAck,
+        P2PGiveMeFileData,
+        P2PGiveMeFileDataAck
+    }
+
+   
 
 
     [Serializable]
@@ -321,13 +329,9 @@ namespace P2PShared
         public long FileID { get; set; }
         public long FileSize { get; set; }
         public string FilePath { get; set; }
-        public bool IsSuccess { get; set; }
-        public string Message { get; set; }
 
         public P2PRequestFileAck(long Id) : base(Id)
         {
-            this.IsSuccess = false;
-            this.Message = string.Empty;
         }
     }
 
@@ -354,6 +358,29 @@ namespace P2PShared
             this.FileID = fileId;
             this.Data = data;
         }
+    }
+
+    [Serializable]
+    public class P2PFileTransferingError : P2PFileTransferingPacket
+    {
+        public string Message { get; set; }
+        public long FileID { get; set; }
+        public string FileName { get; set; }
+        public P2PFileTransferingType TransferingType { get; set; }
+
+        public P2PFileTransferingError(long Id,  P2PFileTransferingType p2PFileTransferingType, string message ) : base(Id)
+        {
+            this.TransferingType = p2PFileTransferingType;
+            this.Message = message;
+        }
+
+        public P2PFileTransferingError(long Id, P2PFileTransferingType p2PFileTransferingType, string message, long fileID) : base(Id)
+        {
+            this.TransferingType = p2PFileTransferingType;
+            this.Message = message;
+            this.FileID = fileID;
+        }
+
     }
     #endregion
 

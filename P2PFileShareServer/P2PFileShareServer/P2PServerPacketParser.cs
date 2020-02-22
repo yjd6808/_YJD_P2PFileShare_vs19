@@ -36,15 +36,13 @@ namespace P2PServer
 
         private void UdpProcessP2PClient(P2PClientInfo packet, IPEndPoint ip)
         {
-            P2PClientInfo client = ClientList.FirstOrDefault(x => x.ID == packet.ID);
+            ClientList.TryGetValue(packet.ID, out P2PClientInfo client);
 
             if (client == null)
             {
                 client = packet;
                 ThreadSafeLogger.WriteLineMessage("UDP 클라이언트 접속 IP: " + ip + ", Name: " + client.Name);
-                ClientList.Add(client);
-
-                
+                AddClientSafe(client.ID, client);
             }
             else
             {
@@ -68,7 +66,7 @@ namespace P2PServer
             {
                 SendUDP(new TestMessage(client.ID, "정도의 P2P 세상에 오신것을 환영합니다!")); //에코
 
-                foreach (P2PClientInfo otherClient in ClientList.Where(x => x.ID != client.ID))
+                foreach (P2PClientInfo otherClient in ClientList.Values.Where(x => x.ID != client.ID))
                     SendUDP(otherClient); //에코
 
                 client.UDPInitialized = true;
@@ -96,11 +94,11 @@ namespace P2PServer
 
         private void TcpProcessP2PClient(P2PClientInfo packet, TcpClient tcpClient)
         {
-            P2PClientInfo client = ClientList.FirstOrDefault(x => x.ID == packet.ID);
+            ClientList.TryGetValue(packet.ID, out P2PClientInfo client);
 
             if (client == null)
             {
-                ClientList.Add(packet);
+                ClientList.Add(packet.ID, packet);
                 ThreadSafeLogger.WriteLineMessage("클라이언트 접속 IP: " + tcpClient.Client.RemoteEndPoint + ", Name: " + packet.Name);
             }
             else
@@ -119,7 +117,7 @@ namespace P2PServer
             {
                 SendTCP(new TestMessage(client.ID, "정도의 P2P 세상에 오신것을 환영합니다!"), tcpClient); //에코
 
-                foreach (P2PClientInfo otherClient in ClientList.Where(x => x.ID != client.ID))
+                foreach (P2PClientInfo otherClient in ClientList.Values.Where(x => x.ID != client.ID))
                     SendTCP(otherClient, tcpClient); //에코
 
                 client.TCPInitialized = true;
@@ -128,7 +126,7 @@ namespace P2PServer
 
         private void TcpProcessHeartBeat(HeartBeat heartbeat_packet)
         {
-            P2PClientInfo p2pClient = ClientList.FirstOrDefault(x => x.ID == heartbeat_packet.ID);
+            //P2PClientInfo p2pClient = ClientList.FirstOrDefault(x => x.ID == heartbeat_packet.ID);
 
 #if (DEBUG)
             if (p2pClient != null)
@@ -139,7 +137,7 @@ namespace P2PServer
 
         private void TcpProcessRequestP2PConnect(RequestP2PConnect requestp2pconnect_packet)
         {
-            P2PClientInfo recipient = ClientList.FirstOrDefault(x => x.ID == requestp2pconnect_packet.RecipientID);
+            ClientList.TryGetValue(requestp2pconnect_packet.RecipientID, out P2PClientInfo recipient);
 
             if (recipient == null)
             {
@@ -155,6 +153,8 @@ namespace P2PServer
 
             SendTCP(requestp2pconnect_packet, recipient.TCPClient);
         }
+        
+
         
     }
 }

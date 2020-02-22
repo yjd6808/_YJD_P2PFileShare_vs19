@@ -7,21 +7,17 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Border x:Name="Border_Background" Background="Aquamarine" CornerRadius="15 15 15 15" Margin="10,12,10,27" >
+        <Border x:Name="Border_Background" Background="BlanchedAlmond" CornerRadius="15 15 15 15" Margin="10,12,10,27" >
             <StackPanel Margin="15">
                 <Grid>
-                    <ProgressBar x:Name="ProgressBar_DownloadBytes" Height="15.0" Minimum="0" Maximum="100"></ProgressBar>
-                    <TextBlock x:Name="TextBlock_DownloadBytes" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Right" Opacity="1.0">
-                        <Run Text="434212 / 4353342 바이트"></Run>
-                        <Run Text="[4.3%]"></Run>
-                        <Run Text="[324 KB/s]"></Run>
-                    </TextBlock>
+                    <ProgressBar x:Name="ProgressBar_DownloadBytes" Background="MediumSeaGreen" Height="15.0" Minimum="0" Maximum="100"></ProgressBar>
+                    <TextBlock x:Name="TextBlock_DownloadBytes"  TextWrapping="Wrap" Foreground="White" FontSize="14" TextAlignment="Right" Opacity="1.0"><Run Text="34.5"/><Run Text=" / "/><Run Text="124.5 "/><Run Text="MB "/><Run Text="[4.3%]"/></TextBlock>
                 </Grid>
                 
                 <TextBlock x:Name="TextBlock_FileName" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Right" Text="몽환의 숲.mp4">
                 </TextBlock>
                 <Grid>
-                    <TextBlock x:Name="TextBlock_LeftTime" TextWrapping="Wrap" Foreground="Black" Text="남은시간 : 0분 0초" TextAlignment="Right"/>
+                    <TextBlock x:Name="TextBlock_LeftTime" TextWrapping="Wrap" Foreground="Black" Text="남은시간 : 0분 0초 [324 KB/s]" TextAlignment="Right"/>
                     <TextBlock x:Name="TextBlock_Type" TextWrapping="Wrap" Foreground="Black" Text="다운로드 중..." TextAlignment="Left"/>
                 </Grid>
                 

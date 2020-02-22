@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -14,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using P2PClient;
 using P2PShared;
 
@@ -26,6 +28,7 @@ namespace P2PClient
     {
         static public MasterClient s_Instance;
 
+        public string     FavoritePath   = "Favorite.json";
         public IPEndPoint ServerEndpoint = new IPEndPoint(IPAddress.Parse("221.162.129.150"), 12345);
 
         private Thread m_ClientTCPListenerThread;
@@ -41,14 +44,16 @@ namespace P2PClient
         private bool m_IsConnected;
 
         public P2PClientInfo MyInfo;
-        public List<P2PClientInfo> OtherClientList;
-        public List<P2PClientInfo> ConnectedClientList;
+        public Dictionary<long, P2PClientInfo> OtherClientList;
+        public Dictionary<long, P2PClientInfo> ConnectedClientList;
         
         public Dictionary<long, Dictionary<long, SendingFile>>      SendingFileList;      //현재 MyInfo.ID와 파일 <송수신중인 클라이언트 ID, 데이터정보>
         public Dictionary<long, Dictionary<long, ReceivingFile>>    ReceivingFileList;
 
         private object sendingFileListLocker;
         private object receivingFileListLocker;
+
+        public List<string> FavoritePathList;
 
         private List<P2PRequestConnectAck> m_SuccessAckResponses;
 
@@ -65,12 +70,13 @@ namespace P2PClient
         public event EventHandler<P2PRequestPath>   OnOtherClientP2PRequestPathArrived;
         public event EventHandler                   OnOtherClientP2PDisconnected;
 
-        public event EventHandler<ReceivingFile>    OnStartReceivingFile;
-        public event EventHandler<SendingFile>      OnStartSendingFile;
-        public event EventHandler<ReceivingFile>    OnSynchronizingReceivingFile;
-        public event EventHandler<SendingFile>      OnSynchronizingSendingFile;
-        public event EventHandler<ReceivingFile>    OnFinishReceivingFile;
-        public event EventHandler<SendingFile>      OnFinishSendingFile;
+        public event EventHandler<ReceivingFile>            OnStartReceivingFile;
+        public event EventHandler<SendingFile>              OnStartSendingFile;
+        public event EventHandler<ReceivingFile>            OnSynchronizingReceivingFile;
+        public event EventHandler<SendingFile>              OnSynchronizingSendingFile;
+        public event EventHandler<ReceivingFile>            OnFinishReceivingFile;
+        public event EventHandler<SendingFile>              OnFinishSendingFile;
+        public event EventHandler<P2PFileTransferingError>  OnReceiveTransferingError;
 
         public event EventHandler                   OnServerConnect;
         public event EventHandler                   OnServerDisconnect;
@@ -87,8 +93,8 @@ namespace P2PClient
             MyInfo.TCPClient = new TcpClient();
             MyInfo.UDPClient = new UdpClient();
             m_SuccessAckResponses = new List<P2PRequestConnectAck>();
-            OtherClientList = new List<P2PClientInfo>();
-            ConnectedClientList= new List<P2PClientInfo>();
+            OtherClientList = new Dictionary<long, P2PClientInfo>();
+            ConnectedClientList = new Dictionary<long, P2PClientInfo>();
 
             SendingFileList = new Dictionary<long, Dictionary<long, SendingFile>>();
             ReceivingFileList = new Dictionary<long, Dictionary<long, ReceivingFile>>();
@@ -109,8 +115,11 @@ namespace P2PClient
             foreach (var IP in IPs)
                 MyInfo.InternalAddresses.Add(IP);
 
-            
+            FavoritePathList = new List<string>();
+            LoadFavoritePaths();
         }
+
+        
 
         public void Init()
         {
@@ -125,11 +134,44 @@ namespace P2PClient
             return s_Instance;
         }
 
+        public void LoadFavoritePaths()
+        {
+            if (File.Exists(FavoritePath) == false)
+                return;
+            try
+            {
+                JObject jObject = JObject.Parse(File.ReadAllText(FavoritePath));
+                if (jObject.ContainsKey("Favorites"))
+                {
+                    foreach (var o in jObject["Favorites"] as JArray)
+                        FavoritePathList.Add(o.ToString());
+                }
+            }
+            catch
+            {
+                WindowLogger.WriteLineError("즐겨찾기 파일을 읽어오는데 실패하였습니다. 올바른 데이터가 입력되어있는지 확인부탁드립니다.");
+            }
+        }
+
+        public void SaveFavoritePaths()
+        {
+            if (FavoritePathList.Count <= 0)
+                return;
+
+            JObject obj = new JObject();
+            JArray array = new JArray();
+            FavoritePathList.ForEach(x =>  array.Add(x));
+            obj.Add("Favorites", array);
+            File.WriteAllText(FavoritePath, obj.ToString());
+        }
+
         public bool IsConnectedToP2PServer() => m_IsConnected;
-        public List<P2PClientInfo> GetAllClients() {
-            List<P2PClientInfo> all = new List<P2PClientInfo>();
-            all.Add(MyInfo);
-            all.AddRange(OtherClientList);
+        public Dictionary<long, P2PClientInfo> GetAllClients() {
+            Dictionary<long, P2PClientInfo> all = new Dictionary<long, P2PClientInfo>();
+            
+            foreach (P2PClientInfo info in OtherClientList.Values )
+                all.Add(info.ID, info);
+            all.Add(MyInfo.ID, MyInfo);
             return all;
         }
 
@@ -201,7 +243,8 @@ namespace P2PClient
                     client.UDPEndPoint = ResponsiveEP;
                     client.IsP2PConnected = true;
 
-                    ConnectedClientList.Add(client);
+                    if (ConnectedClientList.TryGetValue(client.ID, out P2PClientInfo p2PClientInfo) == false)
+                        ConnectedClientList.Add(client.ID, client);
 
                     if (OnOtherClientP2PConnected != null)
                         OnOtherClientP2PConnected.Invoke(client, new EventArgs());
@@ -210,6 +253,38 @@ namespace P2PClient
                     WindowLogger.WriteLineError(client.ToString() + "과 P2P 연결이 실패하였습니다.");
             }));
         }
+
+        public void ReceiveDisconnedtedClient(long disconnectedClientID)
+        {
+            OtherClientList.TryGetValue(disconnectedClientID, out P2PClientInfo clientInfo);
+
+            if (clientInfo != null)
+            {
+                lock (sendingFileListLocker)
+                {
+                    //Exist 함수 대용으로 이 값이 존재하면 접속이 끊긴 유저와 전송,다운중인 파일이 있다는 뜻이니...
+                    if (SendingFileList.TryGetValue(clientInfo.ID, out Dictionary<long, SendingFile> sendingFileList))
+                        SendingFileList.Remove(clientInfo.ID);
+                }
+
+                lock (receivingFileListLocker)
+                {
+                    if (ReceivingFileList.TryGetValue(clientInfo.ID, out Dictionary<long, ReceivingFile> receivingFileList))
+                        ReceivingFileList.Remove(clientInfo.ID);
+                }
+
+                if (OnOtherClientDisconnected != null)
+                    OnOtherClientDisconnected.Invoke(this, clientInfo);
+
+                OtherClientList.Remove(clientInfo.ID);
+            }
+        }
+
+        public void ReceiveDisconnedtedClient(IPEndPoint endPoint)
+        {
+
+        }
+
 
         private IPEndPoint FindReachableEndpoint(P2PClientInfo client)
         {
@@ -250,45 +325,32 @@ namespace P2PClient
                 }
             }
 
-            //if (CI.ExternalEndpoint != null)
-            //{
-            //    if (OnResultsUpdate != null)
-            //        OnResultsUpdate.Invoke(this, "Attempting to Connect via Internet");
 
-            //    for (int i = 1; i < 100; i++)
-            //    {
-            //        if (!TCPClient.Connected)
-            //            break;
 
-            //        if (OnResultsUpdate != null)
-            //            OnResultsUpdate.Invoke(this, "Sending Ack to " + CI.ExternalEndpoint + ". Attempt " + i + " of 99");
+            if (client.ExternalEndpoint != null)
+            {
+                WindowLogger.WriteLineMessage(client.ToString() + "과 WAN 연결 시도중...");
 
-            //        SendMessageUDP(new Ack(LocalClientInfo.ID), CI.ExternalEndpoint);
-            //        Thread.Sleep(300);
+                if (!client.TCPClient.Connected)
+                    return null;
 
-            //        Ack Responce = AckResponces.FirstOrDefault(a => a.ReciientID == CI.ID);
 
-            //        if (Responce != null)
-            //        {
-            //            if (OnResultsUpdate != null)
-            //                OnResultsUpdate.Invoke(this, "Received Ack New from " + CI.ExternalEndpoint.ToString());
+                WindowLogger.WriteLineMessage(client.ExternalEndpoint + "아이피로 UDP 접속 시도중...");
+                SendMessageUDP(new P2PRequestConnect(MyInfo.ID), client.ExternalEndpoint);
+                Thread.Sleep(300);
 
-            //            CI.ConnectionType = ConnectionTypes.WAN;
 
-            //            AckResponces.Remove(Responce);
+                P2PRequestConnectAck Responce = m_SuccessAckResponses.FirstOrDefault(a => a.ID == client.ID);
 
-            //            return CI.ExternalEndpoint;
-            //        }
-            //    }
+                if (Responce != null)
+                {
+                    WindowLogger.WriteLineMessage(client.ExternalEndpoint + "아이피로부터 ACK를 수신하였습니다.");
+                    client.ConnectionType = ConnectionTypes.WAN;
+                    m_SuccessAckResponses.Remove(Responce);
 
-            //    if (OnResultsUpdate != null)
-            //        OnResultsUpdate.Invoke(this, "Connection to " + CI.Name + " failed");
-            //}
-            //else
-            //{
-            //    if (OnResultsUpdate != null)
-            //        OnResultsUpdate.Invoke(this, "Client's External EndPoint is Unknown");
-            //}
+                    return client.ExternalEndpoint;
+                }
+            }
 
             return null;
         }
@@ -325,13 +387,8 @@ namespace P2PClient
                 OtherClientList.Clear();
                 ConnectedClientList.Clear();
 
-                for (int i = 0; i < MainFrame.Get().P2PWindows.Count; i++)
-                    MainFrame.Get().P2PWindows[i].Close();
-                MainFrame.Get().P2PWindows.Clear();
-
                 if (OnServerDisconnect != null)
                     OnServerDisconnect.Invoke(this, new EventArgs());
-
                 
                 WindowLogger.WriteLineMessage("서버와 연결이 끊어졌습니다.");
             }
@@ -411,8 +468,8 @@ namespace P2PClient
             {
                 while (m_IsUDPListened)
                 {
-                    //try
-                    //{
+                    try
+                    {
                         IPEndPoint EP = MyInfo.InternalEndpoint;
 
                         if (EP != null)
@@ -421,11 +478,11 @@ namespace P2PClient
                             INetworkPacket packet = ReceivedBytes.ToP2PBase();
                             UdpPacketParse(packet, EP);
                         }
-                    //}
-                    //catch (Exception e)
-                    //{
-                    //    WindowLogger.WriteLineError("UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
-                    //}
+                    }
+                    catch (Exception e)
+                    {
+                        WindowLogger.WriteLineError( "UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
+                    }
                 }
             }));
 
@@ -549,5 +606,7 @@ namespace P2PClient
 
             return null;
         }
+
+
     }
 }

@@ -17,6 +17,7 @@
         </Grid.RowDefinitions>
 
         <Label x:Name="Label_MyClientInfo" Padding="10, 5" Content="EEP : / IEP : / CT : / IIP : " FontSize="15"/>
+        <Label x:Name="Label_Version" Padding="10, 5" Margin="0, 0, 75, 0" Content="릴리즈" FontSize="15" HorizontalAlignment="Right"/>
         <Button  Grid.Row="0" x:Name="Button_Close"  Background="White" HorizontalAlignment="Right" VerticalAlignment="Stretch" Foreground="Black" Margin="0" Style="{StaticResource MaterialDesignFlatButton}" Click="Button_Close_Click" >
             <materialDesign:PackIcon Kind="Close"/>
         </Button>

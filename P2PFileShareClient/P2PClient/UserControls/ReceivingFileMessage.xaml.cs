@@ -29,24 +29,42 @@ namespace P2PClient
             this._ReceivingFile = receivingFile;
             this.IsReceivingOver = false;
             this.TextBlock_FileName.Text = "데이터 갱신 중...";
+            this.TextBlock_Type.Text = "다운로드 중...";
         }
 
         public void SynchronizeReceivingFile(ReceivingFile file)
         {
+            file.AddSynchronizeTickCount(1);
             long leftByteSize = file.GetLeftByteSize();
+            double percentage = file.GetPercentage();
+            (TransferUnit unit, float speed) transferingSpeed = file.GetSendingSpeed();
 
             TextBlock_FileName.Text = file.GetFileName();
-            TextBlock_DownloadBytes.Text = file.FileSize - leftByteSize + " / " + file.FileSize + "[" + "]";
-            TextBlock_LeftTime.Text = file.GetLeftTimeTotalSeconds() / 60 + "분 " + file.GetLeftTimeTotalSeconds() % 60 + "초";
-            ProgressBar_DownloadBytes.Value = file.FileSize - leftByteSize / file.FileSize;
+            TextBlock_DownloadBytes.Text = string.Format("{0:0.#} / {1:0.#} MB [ {2:0.##}% ]", (file.FileSize - leftByteSize) / (double)1048576, file.FileSize / (double)1048576, percentage);
+            TextBlock_LeftTime.Text = string.Format("남은시간 : {0}분 {1}초 [ {2:0.##} {3}/s ]", file.GetLeftTimeTotalSeconds() / 60, file.GetLeftTimeTotalSeconds() % 60, transferingSpeed.speed, transferingSpeed.unit.ToString());
+            ProgressBar_DownloadBytes.Value = percentage;
         }
 
         public void Finish()
         {
+                
             IsReceivingOver = true;
             TextBlock_LeftTime.Text = "";
             TextBlock_DownloadBytes.HorizontalAlignment = HorizontalAlignment.Center;
             TextBlock_DownloadBytes.Text = "다운로드 완료";
+            TextBlock_Type.Text = "";
+            ProgressBar_DownloadBytes.Value = 100.0f;
+        }
+
+        public void DisconnectedFromPeerOrServer()
+        {
+            TextBlock_DownloadBytes.HorizontalAlignment = HorizontalAlignment.Center;
+            TextBlock_DownloadBytes.Text = "다운로드 중단";
+            TextBlock_FileName.Text = _ReceivingFile.GetFileName();
+            TextBlock_LeftTime.Text = "연결이 끊어졌습니다";
+            TextBlock_Type.Text = "";
+            _ReceivingFile.TerminateStream();
+            WindowLogger.WriteLineMessage("스트림을 종료하였습니다. " + _ReceivingFile.FilePath);
         }
     }
 }

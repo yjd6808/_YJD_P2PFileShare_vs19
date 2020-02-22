@@ -7,11 +7,11 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Border x:Name="Border_Background" Background="Aquamarine" CornerRadius="15 15 15 15" Margin="10,12,10,27" >
+        <Border x:Name="Border_Background" Background="BlanchedAlmond" CornerRadius="15 15 15 15" Margin="10,12,10,27" >
             <StackPanel Margin="15">
                 <Grid>
-                    <ProgressBar x:Name="ProgressBar_DownloadBytes" Height="15.0" Minimum="0" Maximum="100"></ProgressBar>
-                    <TextBlock x:Name="TextBlock_DownloadBytes" TextWrapping="Wrap" Foreground="Black" FontSize="14" TextAlignment="Right" Opacity="1.0">
+                    <ProgressBar x:Name="ProgressBar_DownloadBytes" Background="MediumSeaGreen" Height="15.0" Minimum="0" Maximum="100" ></ProgressBar>
+                    <TextBlock x:Name="TextBlock_DownloadBytes" TextWrapping="Wrap" Foreground="White" FontSize="14" TextAlignment="Right" Opacity="1.0">
                         <Run Text="434212 / 4353342 바이트"></Run>
                         <Run Text="[4.3%]"></Run>
                         <Run Text="[324 KB/s]"></Run>

@@ -29,8 +29,11 @@ namespace P2PServer
 
         private Thread              m_ClientTCPListenerThread;
         private Thread              m_ClientUDPListenerThread;
+
+        private object              m_ClientListLocker;
+        public Dictionary<long, P2PClientInfo>  ClientList;
         
-        public List<P2PClientInfo>  ClientList;
+
         public bool                 IsServerOpened;
 
         private P2PServer()
@@ -39,8 +42,9 @@ namespace P2PServer
             m_UdpEndPoint       = new IPEndPoint(IPAddress.Any, 12345);
             m_TcpListener       = new TcpListener(m_TcpEndPoint);
             m_UdpClient         = new UdpClient(m_UdpEndPoint);
-            ClientList          = new List<P2PClientInfo>();
+            ClientList          = new Dictionary<long, P2PClientInfo>();
             IsServerOpened      = false;
+            m_ClientListLocker  = new object();
         }
 
         static public P2PServer GetInstance()
@@ -139,16 +143,20 @@ namespace P2PServer
 
         private void Disconnect(TcpClient client)
         {
-            P2PClientInfo p2pClient = ClientList.FirstOrDefault(x => x.TCPClient == client);
-
-            if (p2pClient != null)
+            try
             {
-                ClientList.Remove(p2pClient);
-                ThreadSafeLogger.WriteLineMessage(p2pClient.ExternalEndpoint + " / " + p2pClient.InternalEndpoint + "연결이 끊어졌습니다. / 남은 클라이언트 수 : " + ClientList.Count);
-                client.Close();
+                P2PClientInfo p2pClient = ClientList.Values.First(x => x.TCPClient == client);
 
-                BroadcastTCP(new Notification(NotificationType.ClientDisconnected, p2pClient.ID));
+                if (p2pClient != null)
+                {
+                    RemoveClientSafe(p2pClient.ID);
+                    ThreadSafeLogger.WriteLineMessage(p2pClient.ExternalEndpoint + " / " + p2pClient.InternalEndpoint + "연결이 끊어졌습니다. / 남은 클라이언트 수 : " + ClientList.Count);
+                    client.Close();
+
+                    BroadcastTCP(new Notification(NotificationType.ClientDisconnected, p2pClient.ID));
+                }
             }
+            catch { }
         }
 
 
@@ -161,27 +169,57 @@ namespace P2PServer
 
         public void BroadcastTCP(INetworkPacket packet)
         {
-            foreach (P2PClientInfo client in ClientList.Where(x => x.TCPClient != null))
+            foreach (var client in ClientList.Where(x => x.Value.TCPClient != null))
             {
-                ThreadSafeLogger.WriteLineMessage("TCP 브로드 캐스트 : " + client.ExternalEndpoint);
-                SendTCP(packet, client.TCPClient);
+                ThreadSafeLogger.WriteLineMessage("TCP 브로드 캐스트 : " + client.Value.ExternalEndpoint);
+                SendTCP(packet, client.Value.TCPClient);
             }
         }
 
         
         public void SendTCP(INetworkPacket packet, TcpClient Client)
         {
-            if (Client != null && Client.Connected)
+            if (Client == null || Client.Connected == false)
+                return;
+
+            try
             {
                 byte[] Data = packet.ToByteArray();
                 Client.GetStream().Write(Data, 0, Data.Length);
+            }
+            catch (Exception e)
+            {
+                ThreadSafeLogger.WriteLineError("TCP 메시지 전송중 오류가 발생했습니다." + e.Message);
+                Disconnect(Client);
             }
         }
 
         public void SendUDP(INetworkPacket packet)
         {
-            byte[] Bytes = packet.ToByteArray();
-            m_UdpClient.Send(Bytes, Bytes.Length, m_UdpEndPoint);
+            try
+            {
+                byte[] Bytes = packet.ToByteArray();
+                m_UdpClient.Send(Bytes, Bytes.Length, m_UdpEndPoint);
+            }
+            catch (Exception e)
+            {
+                ThreadSafeLogger.WriteLineError("UDP 메시지 전송중 오류가 발생했습니다 : " + e.Message);
+            }
+        }
+
+        private void AddClientSafe(long Id, P2PClientInfo client)
+        {
+            lock (m_ClientListLocker)
+                ClientList.Add(Id, client);
+        }
+
+        private void RemoveClientSafe(long Id)
+        {
+            lock (m_ClientListLocker)
+            {
+                if (ClientList.TryGetValue(Id, out P2PClientInfo info))
+                    ClientList.Remove(Id);
+            }
         }
     }
 }

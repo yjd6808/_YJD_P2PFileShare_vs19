@@ -21,40 +21,18 @@
             </Grid.ColumnDefinitions>
 
             <Label Content="연결상태 : " FontSize="16" Padding="10, 5,0,0" HorizontalAlignment="Left" Width="86"/>
+            <Label x:Name="Label_Version" Content="디버그 (1.0v)" FontSize="16" Padding="10, 5,0,0" HorizontalAlignment="Right" Width="124" />
             <Button HorizontalAlignment="Left" Background="Transparent" Foreground="Green" VerticalAlignment="Top" Margin="76,0,0,0" BorderBrush="Transparent" >
                 <materialDesign:PackIcon x:Name="Button_ConnectedStatus_PackIcon" Kind="Wifi"></materialDesign:PackIcon>
             </Button>
 
-            <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Column="0" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
-                    <materialDesign:PackIcon Kind="Favorite" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
-                </Button>
-
-                <Button  Grid.Column="1" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
-                    <materialDesign:PackIcon Kind="Refresh" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
-                </Button>
-
-                <Button x:Name="Button_Refresh" Click="Button_Refresh_Click" Grid.Column="1" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
-                    <materialDesign:PackIcon Kind="Refresh" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
-                </Button>
-
-                <Button x:Name="Button_Home"  Click="Button_Home_Click" Grid.Column="2" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
-                    <materialDesign:PackIcon Kind="HomeOutline" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
-                </Button>
-
-                
-
-            </Grid>
 
 
 
+
+            <Button  Grid.Column="1" x:Name="Button_Setting"  Background="White" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="Black" Margin="0,0,48,0" Style="{StaticResource MaterialDesignFlatButton}" Click="Button_Setting_Click" Grid.ColumnSpan="2" >
+                <materialDesign:PackIcon Kind="Settings"></materialDesign:PackIcon>
+            </Button>
 
             <Button  Grid.Column="2" x:Name="Button_Close"  Background="White" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="Black" Margin="0" Style="{StaticResource MaterialDesignFlatButton}" Click="Button_Close_Click" >
                 <materialDesign:PackIcon Kind="Close"></materialDesign:PackIcon>
@@ -95,16 +73,64 @@
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="13*"></RowDefinition>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="Button_Favorite" Margin="1.5, 0, 0, 0" Grid.Column="0" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray" Click="Button_Favorite_Click">
+                        <materialDesign:PackIcon Kind="Favorite" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
+                    </Button>
+
+                    <Button Margin="1.5, 0, 0, 0" x:Name="Button_Refresh" Click="Button_Refresh_Click" Grid.Column="1" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
+                        <materialDesign:PackIcon Kind="Refresh" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
+                    </Button>
+
+                    <Button Margin="1.5, 0, 0, 0" x:Name="Button_Home"  Click="Button_Home_Click" Grid.Column="2" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
+                        <materialDesign:PackIcon Kind="HomeOutline" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
+                    </Button>
+
+
+                    <Button Margin="1.5, 0, 0, 0" Name="Button_DownloadFolderOpen"  Click="Button_DownloadFolderOpen_Click" Grid.Column="3" HorizontalAlignment="Stretch" Background="LightGray" BorderBrush="LightGray">
+                        <materialDesign:PackIcon Kind="Download" Width="20" Height="20" Foreground="Black"></materialDesign:PackIcon>
+                    </Button>
+
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="5*"></ColumnDefinition>
                         <ColumnDefinition Width="*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
 
-                    <ComboBox x:Name="ComboBox_InputPath" Padding="3, 2,0,7" Margin="0, 0, 5, 0" KeyDown="ComboBox_InputPath_KeyDown" materialDesign:HintAssist.Hint="경로 입력..." FontSize="16" IsEditable="True"></ComboBox>
+
+                    <ComboBox x:Name="ComboBox_InputPath" Padding="3, 2,0,7" Margin="0, 0, 5, 0" KeyDown="ComboBox_InputPath_KeyDown" materialDesign:HintAssist.Hint="경로 입력..." FontSize="16" IsEditable="True">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <ScrollViewer>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="5*"></ColumnDefinition>
+                                            <ColumnDefinition Width="*"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Text="{Binding .}" Margin="0, 5, 15, 5"></TextBlock>
+                                        <Button BorderBrush="Transparent" Background="DimGray" Grid.Column="1" Click="Button_RemoveFavorite_Click" HorizontalAlignment="Right">
+                                            <materialDesign:PackIcon Kind="Close"></materialDesign:PackIcon>
+                                        </Button>
+                                    </Grid>
+                                </ScrollViewer>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+
+                    </ComboBox>
 
 
                     <Button x:Name="Button_Search" Grid.Column="1" Margin="0" Padding="0" Click="Button_Search_Click">
@@ -112,15 +138,7 @@
                     </Button>
                 </Grid>
 
-                <ListView Grid.Row="1" x:Name="ListView_PathList" HorizontalAlignment="Stretch" VerticalAlignment="Top" MouseDoubleClick="ListView_PathList_MouseDoubleClick"  ContextMenuOpening="ListView_PathList_ContextMenuOpening" FontSize="15" Height="478"  RenderTransformOrigin="0.5,0.5"  >
-                    <ListView.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform/>
-                            <SkewTransform AngleY="-0.57"/>
-                            <RotateTransform/>
-                            <TranslateTransform Y="-1.99"/>
-                        </TransformGroup>
-                    </ListView.RenderTransform>
+                <ListView Grid.Row="2" x:Name="ListView_PathList" HorizontalAlignment="Stretch" VerticalAlignment="Top" MouseDoubleClick="ListView_PathList_MouseDoubleClick"  ContextMenuOpening="ListView_PathList_ContextMenuOpening" FontSize="15" Height="445"  RenderTransformOrigin="0.5,0.5" SelectionChanged="ListView_PathList_SelectionChanged"  >
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem x:Name="ListView_ContextMenu_Download"  Header="다운로드" Click="ListView_ContextMemu_Download_Click">
@@ -160,7 +178,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </Grid>
-            
+
         </Grid>
 
 
