@@ -14,7 +14,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using P2PShared;
-using P2PServer.Util;
 
 namespace P2PServer
 {

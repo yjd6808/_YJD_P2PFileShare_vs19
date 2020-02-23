@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}</ProjectGuid>
+    <ProjectGuid>{CDDA6835-69AA-4C5A-9974-11E12240BC2D}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>P2PFileShareServer</RootNamespace>
-    <AssemblyName>P2PFileShareServer</AssemblyName>
+    <RootNamespace>P2PServer</RootNamespace>
+    <AssemblyName>P2PServer</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -33,13 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LiteNetLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\P2PFileShareClient\P2PShared\bin\Debug\LiteNetLib.dll</HintPath>
-    </Reference>
-    <Reference Include="P2PShared">
-      <HintPath>..\P2PFileShareClient\P2PShared\bin\Debug\P2PShared.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -54,10 +47,16 @@
     <Compile Include="P2PServerPacketParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Util\ThreadSafeLogger.cs" />
+    <Compile Include="ThreadSafeLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\P2PShared\P2PShared.csproj">
+      <Project>{6c45e729-11f0-41b2-8dba-6af1f821caee}</Project>
+      <Name>P2PShared</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

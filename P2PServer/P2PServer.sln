@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P2PFileShareServer", "P2PFileShareServer.csproj", "{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P2PServer", "P2PServer.csproj", "{CDDA6835-69AA-4C5A-9974-11E12240BC2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CFEEA4E1-9A64-4BFC-97EE-90327671A541}
+		SolutionGuid = {9414B5E6-8930-4993-A49F-2EA4E1B35B4A}
 	EndGlobalSection
 EndGlobal

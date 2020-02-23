@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29418.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P2PShared", "P2PShared\P2PShared.csproj", "{6C45E729-11F0-41B2-8DBA-6AF1F821CAEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P2PServer", "P2PServer\P2PServer.csproj", "{CDDA6835-69AA-4C5A-9974-11E12240BC2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P2PClient", "P2PClient\P2PClient.csproj", "{865C3C10-1DF5-4E65-93BA-BF2667498576}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6C45E729-11F0-41B2-8DBA-6AF1F821CAEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C45E729-11F0-41B2-8DBA-6AF1F821CAEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C45E729-11F0-41B2-8DBA-6AF1F821CAEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C45E729-11F0-41B2-8DBA-6AF1F821CAEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDDA6835-69AA-4C5A-9974-11E12240BC2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{865C3C10-1DF5-4E65-93BA-BF2667498576}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{865C3C10-1DF5-4E65-93BA-BF2667498576}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{865C3C10-1DF5-4E65-93BA-BF2667498576}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{865C3C10-1DF5-4E65-93BA-BF2667498576}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A32B3BF2-C2F9-42B7-94B0-2A2E8E325CC9}
+	EndGlobalSection
+EndGlobal

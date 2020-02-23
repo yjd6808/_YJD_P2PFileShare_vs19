@@ -40,7 +40,7 @@ namespace P2PShared
         [NonSerialized] //둘다 씀
         public TcpClient TCPClient = new TcpClient();
         [NonSerialized] //클라만 씀
-        public ReliableUdpClient UDPClient = new ReliableUdpClient();
+        public UdpClient UDPClient = new UdpClient();
 
         [NonSerialized] //서버만 씀
         public bool TCPInitialized = false;

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B962B87D-F674-4CFD-9840-43D6532F19E5}</ProjectGuid>
+    <ProjectGuid>{6C45E729-11F0-41B2-8DBA-6AF1F821CAEE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>P2PShared</RootNamespace>
@@ -31,11 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LiteNetLib">
-      <HintPath>..\packages\LiteNetLib.0.8.3.1\lib\net35\LiteNetLib.dll</HintPath>
-    </Reference>
     <Reference Include="MaterialDesignThemes.Wpf">
-      <HintPath>..\P2PClient\packages\MaterialDesignThemes.3.0.1\lib\net45\MaterialDesignThemes.Wpf.dll</HintPath>
+      <HintPath>..\packages\MaterialDesignThemes.3.0.1\lib\net45\MaterialDesignThemes.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,7 +50,6 @@
     <Compile Include="NetworkPackets.cs" />
     <Compile Include="P2PPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReliableUdpClient.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

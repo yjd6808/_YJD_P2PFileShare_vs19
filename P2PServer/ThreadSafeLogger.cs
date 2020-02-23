@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace P2PServer.Util
+namespace P2PServer
 {
     public class ThreadSafeLogger
     {

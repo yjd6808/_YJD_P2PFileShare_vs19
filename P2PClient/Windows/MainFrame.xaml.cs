@@ -42,6 +42,7 @@ namespace P2PClient
             s_MainFrame = this;
             m_MasterClient = MasterClient.GetInstance();
             P2PWindows = new List<P2PWindow>();
+            
 
             m_MasterClient.OnOtherClientAdded += M_MasterClient_OnOtherClientAdded;
             m_MasterClient.OnOtherClientUpdated += M_MasterClient_OnOtherClientUpdated;
