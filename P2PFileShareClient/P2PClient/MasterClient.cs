@@ -414,12 +414,11 @@ namespace P2PClient
 
         public void SendMessageUDP(INetworkPacket packet, IPEndPoint EP)
         {
-            byte[] data = packet.ToByteArray();
-
             try
             {
+                byte[] data = packet.ToByteArray();
                 if (data != null)
-                    MyInfo.UDPClient.Send(data, data.Length, EP);
+                        MyInfo.UDPClient.Send(data, data.Length, EP);
             }
             catch (Exception e)
             {
@@ -462,6 +461,7 @@ namespace P2PClient
 
         }
 
+
         private void StartUDPListen()
         {
             m_ClientUDPListenerThread = new Thread(new ThreadStart(delegate
@@ -472,7 +472,7 @@ namespace P2PClient
                     {
                         IPEndPoint EP = MyInfo.InternalEndpoint;
 
-                        if (EP != null)
+                        if (EP != null && MyInfo.UDPClient.Available >= 4)
                         {
                             byte[] ReceivedBytes = MyInfo.UDPClient.Receive(ref EP);
                             INetworkPacket packet = ReceivedBytes.ToP2PBase();
@@ -481,7 +481,7 @@ namespace P2PClient
                     }
                     catch (Exception e)
                     {
-                        WindowLogger.WriteLineError( "UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
+                        WindowLogger.WriteLineError("UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
                     }
                 }
             }));

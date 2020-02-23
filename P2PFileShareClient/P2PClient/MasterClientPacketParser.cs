@@ -332,7 +332,7 @@ namespace P2PClient
                     P2PGiveMeFileDataAck ack = new P2PGiveMeFileDataAck(MyInfo.ID, fileID, readBytes);
                     SendMessageUDP(ack, ip);
                     sendingFile.AddTransferedByteInOneSecondSafe(readBytes.Length);
-                    Thread.Sleep(1);
+                    Thread.Sleep(0);
                 }
                 
             }
@@ -370,7 +370,7 @@ namespace P2PClient
                 else
                 {
                     SendMessageUDP(new P2PGiveMeFileData(MyInfo.ID, fileID), ip);
-                    Thread.Sleep(1);
+                    Thread.Sleep(0);
                 }
             }
             catch(Exception e)

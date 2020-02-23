@@ -127,7 +127,7 @@ namespace P2PServer
         private void TcpProcessHeartBeat(HeartBeat heartbeat_packet)
         {
             //P2PClientInfo p2pClient = ClientList.FirstOrDefault(x => x.ID == heartbeat_packet.ID);
-
+            ThreadSafeLogger.WriteLineMessage(heartbeat_packet.ID.ToString());
 #if (DEBUG)
             if (p2pClient != null)
                 ThreadSafeLogger.WriteLineMessage("클라이언트 접속 IP: " + p2pClient.ExternalEndpoint + ", Name: " + p2pClient.Name);

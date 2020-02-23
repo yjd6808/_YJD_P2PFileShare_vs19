@@ -17,7 +17,7 @@ namespace P2PClient
 {
     public static class Setting
     {
-        private static string _P2PStartPath; // field
+        private static string _P2PStartPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
         public static string P2PStartPath   // property
         {
             get
@@ -32,8 +32,8 @@ namespace P2PClient
             }
         }
 
-        private static string _P2PDownloadPath; // field
-        public static string P2PDownloadPath   // property
+        private static string _P2PDownloadPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\P2PShare"; 
+        public static string P2PDownloadPath   
         {
             get
             {

@@ -43,6 +43,11 @@ namespace P2PClient
 
         public ReceivingFile(long UserId, long FileId, long fileSize, string filePath)
         {
+            string downloadPath = Setting.P2PDownloadPath;
+
+            if (Directory.Exists(downloadPath) == false)
+                Directory.CreateDirectory(downloadPath);
+
             this.UserID = UserId;
             this.FileID = FileId;
             this.FileSize = fileSize;
@@ -52,7 +57,7 @@ namespace P2PClient
 
             this.m_LeftByteSize = FileSize;
             this.m_IsWriteOver = false;
-            this.m_FileStream = File.OpenWrite(Path.Combine(Setting.P2PDownloadPath, Path.GetFileName(FilePath)));
+            this.m_FileStream = File.OpenWrite(downloadPath +"\\" + Path.GetFileName(FilePath));
 
             this.m_TransferedByteLocker = new object();
             this.m_TransferedByteInOneSecond = 0;

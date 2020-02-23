@@ -14,6 +14,8 @@ using System.Net.Sockets;
 using System.Threading;
 using P2PShared;
 using P2PServer.Util;
+using ENet;
+
 
 namespace P2PServer
 {
@@ -38,13 +40,14 @@ namespace P2PServer
 
         private P2PServer()
         {
-            m_TcpEndPoint       = new IPEndPoint(IPAddress.Any, 12345);
-            m_UdpEndPoint       = new IPEndPoint(IPAddress.Any, 12345);
-            m_TcpListener       = new TcpListener(m_TcpEndPoint);
-            m_UdpClient         = new UdpClient(m_UdpEndPoint);
-            ClientList          = new Dictionary<long, P2PClientInfo>();
-            IsServerOpened      = false;
-            m_ClientListLocker  = new object();
+            m_TcpEndPoint = new IPEndPoint(IPAddress.Any, 12345);
+            m_UdpEndPoint = new IPEndPoint(IPAddress.Any, 12345);
+            m_TcpListener = new TcpListener(m_TcpEndPoint);
+            m_UdpClient = new UdpClient(m_UdpEndPoint);
+            ClientList = new Dictionary<long, P2PClientInfo>();
+            IsServerOpened = false;
+            m_ClientListLocker = new object();
+
         }
 
         static public P2PServer GetInstance()

@@ -64,7 +64,6 @@ namespace P2PClient
             TextBlock_LeftTime.Text = "연결이 끊어졌습니다";
             TextBlock_Type.Text = "";
             _ReceivingFile.TerminateStream();
-            WindowLogger.WriteLineMessage("스트림을 종료하였습니다. " + _ReceivingFile.FilePath);
         }
     }
 }

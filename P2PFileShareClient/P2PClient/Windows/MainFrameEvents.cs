@@ -40,7 +40,7 @@ namespace P2PClient
             {
 
                 //주의 : 에코이므로 상대방 정보를 클래스에 담고있어야함
-                P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient.ID == e.RecipientID);
+                P2PWindow p2pWindow = P2PWindows.FirstOrDefault(x => x.ConnectedClient != null && x.ConnectedClient.ID == e.RecipientID);
 
                 if (p2pWindow == null)
                     return;
