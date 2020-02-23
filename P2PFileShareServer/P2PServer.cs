@@ -14,7 +14,6 @@ using System.Net.Sockets;
 using System.Threading;
 using P2PShared;
 using P2PServer.Util;
-using ENet;
 
 
 namespace P2PServer
@@ -94,8 +93,11 @@ namespace P2PServer
 
                 if (ReceivedBytes != null)
                 {
-                    INetworkPacket packet = ReceivedBytes.ToP2PBase();
-                    UdpPacketParse(packet, m_UdpEndPoint);
+                    INetworkPacket packet = ReceivedBytes.LiteNetLibToP2PBase();
+                    if (packet != null)
+                        UdpPacketParse(packet, m_UdpEndPoint);
+                    else
+                        Console.WriteLine("null 도착");
                 }
             }
         }

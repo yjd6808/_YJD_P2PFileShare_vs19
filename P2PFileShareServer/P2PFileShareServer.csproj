@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AC850057-0073-4E88-8081-2513F02AF0B3}</ProjectGuid>
+    <ProjectGuid>{48FB9DB6-A7C3-4D08-A13E-E0E23BCEA4F2}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>P2PFileShareServer</RootNamespace>
     <AssemblyName>P2PFileShareServer</AssemblyName>
@@ -12,8 +12,6 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,15 +32,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>p2pshareserver.ico</ApplicationIcon>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ENet-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ENet-CSharp.2.3.5\lib\net35\ENet-CSharp.dll</HintPath>
+    <Reference Include="LiteNetLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\P2PFileShareClient\P2PShared\bin\Debug\LiteNetLib.dll</HintPath>
     </Reference>
     <Reference Include="P2PShared">
-      <HintPath>..\..\P2PFileShareClient\P2PShared\bin\Debug\P2PShared.dll</HintPath>
+      <HintPath>..\P2PFileShareClient\P2PShared\bin\Debug\P2PShared.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -62,20 +58,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="libenet.dylib">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="p2pshareserver.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\ENet-CSharp.2.3.5\build\ENet-CSharp.targets" Condition="Exists('..\packages\ENet-CSharp.2.3.5\build\ENet-CSharp.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>이 프로젝트는 이 컴퓨터에 없는 NuGet 패키지를 참조합니다. 해당 패키지를 다운로드하려면 NuGet 패키지 복원을 사용하십시오. 자세한 내용은 http://go.microsoft.com/fwlink/?LinkID=322105를 참조하십시오. 누락된 파일은 {0}입니다.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\ENet-CSharp.2.3.5\build\ENet-CSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ENet-CSharp.2.3.5\build\ENet-CSharp.targets'))" />
-  </Target>
 </Project>

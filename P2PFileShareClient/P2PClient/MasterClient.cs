@@ -91,7 +91,7 @@ namespace P2PClient
 
             MyInfo = new P2PClientInfo();
             MyInfo.TCPClient = new TcpClient();
-            MyInfo.UDPClient = new UdpClient();
+            MyInfo.UDPClient = new ReliableUdpClient();
             m_SuccessAckResponses = new List<P2PRequestConnectAck>();
             OtherClientList = new Dictionary<long, P2PClientInfo>();
             ConnectedClientList = new Dictionary<long, P2PClientInfo>();
@@ -99,12 +99,14 @@ namespace P2PClient
             SendingFileList = new Dictionary<long, Dictionary<long, SendingFile>>();
             ReceivingFileList = new Dictionary<long, Dictionary<long, ReceivingFile>>();
 
+            MyInfo.UDPClient.OnUnconnectedMessageReceived += UDPClient_OnUnconnectedMessageReceived;
+
             sendingFileListLocker = new object();
             receivingFileListLocker = new object();
 
-            MyInfo.UDPClient.AllowNatTraversal(true);
-            MyInfo.UDPClient.Client.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
-            MyInfo.UDPClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            //MyInfo.UDPClient.AllowNatTraversal(true);
+            //MyInfo.UDPClient.Client.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
+            //MyInfo.UDPClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             MyInfo.Name = System.Environment.MachineName;
             MyInfo.ConnectionType = ConnectionTypes.Unknown;
@@ -119,7 +121,16 @@ namespace P2PClient
             LoadFavoritePaths();
         }
 
-        
+        private void UDPClient_OnUnconnectedMessageReceived(IPEndPoint remoteEndPoint, LiteNetLib.NetPacketReader reader, LiteNetLib.UnconnectedMessageType messageType)
+        {
+            if (m_IsUDPListened == false)
+                return;
+
+            if (reader.TryGetBytesWithLength(out byte[] data))
+            {
+                WindowLogger.WriteLineMessage(data.Length + " 바이트 수신");
+            }
+        }
 
         public void Init()
         {
@@ -200,7 +211,7 @@ namespace P2PClient
                 StartHearBeatToKeepUDPHolePunchingState();
 
                 SendMessageUDP(MyInfo.Simplified(), ServerEndpoint);
-                MyInfo.InternalEndpoint = (IPEndPoint)MyInfo.UDPClient.Client.LocalEndPoint;
+                MyInfo.InternalEndpoint = (IPEndPoint)MyInfo.UDPClient.LocalEndPoint;
 
                 Thread.Sleep(500);
                 SendMessageTCP(MyInfo);
@@ -418,7 +429,7 @@ namespace P2PClient
             {
                 byte[] data = packet.ToByteArray();
                 if (data != null)
-                        MyInfo.UDPClient.Send(data, data.Length, EP);
+                        MyInfo.UDPClient.Send(data, EP);
             }
             catch (Exception e)
             {
@@ -464,32 +475,32 @@ namespace P2PClient
 
         private void StartUDPListen()
         {
-            m_ClientUDPListenerThread = new Thread(new ThreadStart(delegate
-            {
-                while (m_IsUDPListened)
-                {
-                    try
-                    {
-                        IPEndPoint EP = MyInfo.InternalEndpoint;
+            //m_ClientUDPListenerThread = new Thread(new ThreadStart(delegate
+            //{
+            //    while (m_IsUDPListened)
+            //    {
+            //        try
+            //        {
+            //            IPEndPoint EP = MyInfo.InternalEndpoint;
 
-                        if (EP != null && MyInfo.UDPClient.Available >= 4)
-                        {
-                            byte[] ReceivedBytes = MyInfo.UDPClient.Receive(ref EP);
-                            INetworkPacket packet = ReceivedBytes.ToP2PBase();
-                            UdpPacketParse(packet, EP);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        WindowLogger.WriteLineError("UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
-                    }
-                }
-            }));
+            //            if (EP != null && MyInfo.UDPClient.Available >= 4)
+            //            {
+            //                byte[] ReceivedBytes = MyInfo.UDPClient.Receive(ref EP);
+            //                INetworkPacket packet = ReceivedBytes.ToP2PBase();
+            //                UdpPacketParse(packet, EP);
+            //            }
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            WindowLogger.WriteLineError("UDP 메시지 수신중 오류가 발생했습니다 : " + e.Message);
+            //        }
+            //    }
+            //}));
 
-            m_ClientUDPListenerThread.IsBackground = true;
+            //m_ClientUDPListenerThread.IsBackground = true;
 
-            if (m_IsUDPListened)
-                m_ClientUDPListenerThread.Start();
+            //if (m_IsUDPListened)
+            //    m_ClientUDPListenerThread.Start();
         }
 
         

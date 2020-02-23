@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LiteNetLib">
+      <HintPath>..\packages\LiteNetLib.0.8.3.1\lib\net35\LiteNetLib.dll</HintPath>
+    </Reference>
     <Reference Include="MaterialDesignThemes.Wpf">
       <HintPath>..\P2PClient\packages\MaterialDesignThemes.3.0.1\lib\net45\MaterialDesignThemes.Wpf.dll</HintPath>
     </Reference>
@@ -50,6 +53,7 @@
     <Compile Include="NetworkPackets.cs" />
     <Compile Include="P2PPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReliableUdpClient.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

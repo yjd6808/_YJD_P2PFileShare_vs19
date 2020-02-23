@@ -26,6 +26,26 @@ namespace P2PShared
             return Stream.ToArray();
         }
 
+        public static INetworkPacket LiteNetLibToP2PBase(this byte[] bytes)
+        {
+            if (bytes.Length <= 1)
+            {
+                Console.WriteLine(bytes.Length);
+                return null;
+            }
+
+            BinaryFormatter formatter = new BinaryFormatter();
+            MemoryStream Stream = new MemoryStream();
+
+            Stream.Write(bytes, 1, bytes.Length - 1);
+            Stream.Seek(0, SeekOrigin.Begin);
+
+            INetworkPacket clientInfo = (INetworkPacket)formatter.Deserialize(Stream);
+
+            return clientInfo;
+        }
+
+
         public static INetworkPacket ToP2PBase(this byte[] bytes)
         {
             BinaryFormatter formatter = new BinaryFormatter();
@@ -38,6 +58,8 @@ namespace P2PShared
 
             return clientInfo;
         }
+
+
 
 
         public static double BytesToKilobytes(this byte[] bytes)
