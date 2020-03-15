@@ -298,9 +298,6 @@ namespace P2PShared
         P2PGiveMeFileDataAck
     }
 
-   
-
-
     [Serializable]
     public class P2PFileTransferingPacket : INetworkPacket
     {
